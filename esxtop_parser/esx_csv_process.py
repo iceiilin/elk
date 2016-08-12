@@ -30,6 +30,8 @@ OLD_ENTITY_FILE = "rackhd_esxtop.entity.origin"
 ENTITY_FILE = "rackhd_esxtop.entity" if (entity_config == "none") else entity_config
 LOGSTASH_CONFIG_FILE = "rackhd_esxtop.logstash" if (logstash_config == "none") else logstash_config
 ESXTOP_CONFIG_FILE = "rackhd_esxtop60rc" if (esxtop_config == "none") else esxtop_config
+
+
 ###########################################################################
 ##This portion is to edit esxtop entity to reduce esxtop output size
 ###########################################################################
@@ -41,7 +43,7 @@ if entity_config == "none":
     ## flag = 1,2,3,4,5 stands for SchedGroup, Adapter, Device, NetPort, InterruptCookie sections respectively
     flag = 0
     ## Process "helper", "drivers", "ft" and "vmotion" will be dropped, "system" and "idle" is kept
-    process_anti_patten = re.compile("\d+ ([A-Za-z\-\_]+\.\d+|helper|drivers|ft|vmotion)", re.I)
+    process_anti_patten = re.compile("\d+ ([A-Za-z\-\_]+\.\d+|helper|drivers|ft|vmotion|system|idle)", re.I)
     network_anti_patten = re.compile("\d+ (Management|Shadow .+|vmk\d+)", re.I)
     for line in f_old_entity.readlines():
         stripped_line = line.replace("\n", "")
@@ -60,6 +62,7 @@ if entity_config == "none":
 
 ###########################################################################
 ##This portion is to filter necessary headings of ESXi performance
+##For each heading description, please refer to https://communities.vmware.com/docs/DOC-9279
 ###########################################################################
 cmd_test = "esxtop --import-entity {} -b -n {} -d {} -c {}".format(ENTITY_FILE, 1, 2, ESXTOP_CONFIG_FILE)
 output = subprocess.check_output(cmd_test, shell=True)
@@ -67,41 +70,78 @@ output = output.split("\n")[0]
 
 old_heading_list = output.split(",")
 
+############################host cpu and memory############################
 patten_list = [
     re.compile(".*PDH-CSV.*UTC.*", re.I),
-    #re.compile(".*Memory\\\\Memory Overcommit \(1 Minute Avg\)", re.I),
-    re.compile(".*Memory\\\\(Machine|Kernel|NonKernel|Free) MBytes", re.I),
-    re.compile(".*Physical Cpu Load\\\\Cpu Load \(1 Minute Avg\)", re.I),
+    re.compile(".*Memory\\\\Memory Overcommit \((1|5|10) Minute Avg\)", re.I),
+    #re.compile(".*Memory\\\\(Machine|Kernel|NonKernel|Free) MBytes", re.I),
+    #re.compile(".*\\\\Memory\\\\.*MBytes", re.I),
+    re.compile(".*Physical Cpu Load\\\\Cpu Load \((1|5) Minute Avg\)", re.I),
     re.compile(".*Physical Cpu\(_Total\)\\\\\% (Processor|Util|Core Util) Time", re.I),
 ]
 
-#if --vm is used, only specified vms will be monitored
+########################VM cpu, memory and network##########################
+## if --vm is used, only specified vms will be monitored
 if vm_list[0] != "none":
     for vm in vm_list:
+        """
+        #######################Filtered Memory items for VM##########################
+        "\\localhost\Group Memory(19299:Krein)\Memory Size MBytes"
+        "\\localhost\Group Memory(19299:Krein)\Memory Granted Size MBytes"
+        "\\localhost\Group Memory(19299:Krein)\Memory Consumed Size MBytes"
+        "\\localhost\Group Memory(19299:Krein)\Target Size MBytes"
+        "\\localhost\Group Memory(19299:Krein)\Touched MBytes"
+        "\\localhost\Group Memory(19299:Krein)\Touched Write MBytes"
+        "\\localhost\Group Memory(19299:Krein)\% Active Estimate"
+        "\\localhost\Group Memory(19299:Krein)\% Active Slow Estimate"
+        "\\localhost\Group Memory(19299:Krein)\% Active Fast Estimate"
+        "\\localhost\Group Memory(19299:Krein)\% Active Next Estimate"
+        #######################Filtered CPU items for VM#############################
+        "\\localhost\Group Cpu(28868:Ted_DEV_ORA)\% Used"
+        "\\localhost\Group Cpu(28868:Ted_DEV_ORA)\% Run"
+        "\\localhost\Group Cpu(28868:Ted_DEV_ORA)\% System"
+        "\\localhost\Group Cpu(28868:Ted_DEV_ORA)\% Wait"
+        "\\localhost\Group Cpu(28868:Ted_DEV_ORA)\% VmWait"
+        "\\localhost\Group Cpu(28868:Ted_DEV_ORA)\% Ready"
+        "\\localhost\Group Cpu(28868:Ted_DEV_ORA)\% Idle"
+        "\\localhost\Group Cpu(28868:Ted_DEV_ORA)\% Overlap"
+        "\\localhost\Group Cpu(28868:Ted_DEV_ORA)\% CoStop"
+        "\\localhost\Group Cpu(28868:Ted_DEV_ORA)\% Max Limited"
+        "\\localhost\Group Cpu(28868:Ted_DEV_ORA)\% Swap Wait"
+        #######################Filtered network items for vm#########################
+        "\\localhost\Network Port(vSwitch6:134217729:Management)\MBits Transmitted/sec"
+        "\\localhost\Network Port(vSwitch6:134217729:Management)\MBits Received/sec"
+        "\\localhost\Network Port(vSwitch6:134217730:36139:Krein)\MBits Transmitted/sec"
+        "\\localhost\Network Port(vSwitch6:134217730:36139:Krein)\MBits Received/sec"
+        "\\localhost\Network Port(vSwitch6:134217731:506106:quanta_t41)\MBits Transmitted/sec"
+        "\\localhost\Network Port(vSwitch6:134217731:506106:quanta_t41)\MBits Received/sec"
+        """
         #cpu_string = ".*Group Cpu\(\d+\:{}\)\\\\\% (Used|Run|System|Wait|Ready|Idle)".format(vm)
-        cpu_string = ".*Group Cpu\(\d+\:{}\)\\\\\% (Used|Run|System)".format(vm)
-        mem_string = ".*Group Memory\(\d+\:{}\)\\\\(Memory|Memory Granted|Memory Consumed|Target) Size MBytes".format(vm)
+        cpu_string = ".*Group Cpu\(\d+\:{}\)\\\\\% (Used)".format(vm)
+        mem_string = ".*Group Memory\(\d+\:{}\)\\\\(Touched MBytes|Memory Consumed Size MBytes)".format(vm)
         patten_list.append(re.compile(cpu_string, re.I))
         patten_list.append(re.compile(mem_string, re.I))
         if nic_list[0] == "none":
             #if -n is not used, nics for all vms will be monitored
-            net_string = ".*Network Port\(vSwitch\d+.+\:{}\)\\\\(MBits|Packets) (Transmitted|Received)\/sec".format(vm)
+            #net_string = ".*Network Port\(vSwitch\d+.+\:{}\)\\\\(MBits|Packets) (Transmitted|Received)\/sec".format(vm)
+            net_string = ".*Network Port\(vSwitch\d+.+\:{}\)\\\\MBits (Transmitted|Received)\/sec".format(vm)
             patten_list.append(re.compile(net_string, re.I))
 #if --vm is not used, all vms will be monitored
 else:
-    cpu_string = ".*Group Cpu\(\d+\:[\w_-]+\)\\\\\% (Used|Run|System)"
-    mem_string = ".*Group Memory\(\d+\:[\w_-]+\)\\\\(Memory|Memory Granted|Memory Consumed|Target) Size MBytes"
+    cpu_string = ".*Group Cpu\(\d+\:[\w_-]+\)\\\\\% (Used)"
+    #mem_string = ".*Group Memory\(\d+\:[\w_-]+\)\\\\(Memory|Memory Granted|Memory Consumed|Target) Size MBytes"
+    mem_string = ".*Group Memory\(\d+\:[\w_-]+\)\\\\(Touched MBytes|Memory Consumed Size MBytes)"
     patten_list.append(re.compile(cpu_string, re.I))
     patten_list.append(re.compile(mem_string, re.I))
+    #if -n is not used, all phsical vmnics and VM vmnics will be monitored
     if nic_list[0] == "none":
-        #if -n is not used, all vmnics will be monitored
-        net_string = ".*Network Port\(vSwitch\d\:\d+\:vmnic\d{1,2}\)\\\\(MBits|Packets) (Transmitted|Received)\/sec"
+        net_string = ".*Network Port\(vSwitch\d{1,2}\:.+(?!Management)\)\\\\MBits (Transmitted|Received)\/sec"
         patten_list.append(re.compile(net_string, re.I))
 
 #if --nic is used, only specified nics will be monitored
 if nic_list[0] != "none":
     for nic in nic_list:
-        net_string = ".*Network Port\(vSwitch\d\:\d+\:{}\)\\\\(MBits|Packets) (Transmitted|Received)\/sec".format(nic)
+        net_string = ".*Network Port\(vSwitch\d\:\d+\:{}\)\\\\MBits (Transmitted|Received)\/sec".format(nic)
         patten_list.append(re.compile(net_string, re.I))
 
 target_index_list = []
@@ -113,7 +153,7 @@ for (key, data) in enumerate(old_heading_list):
         if patten.match(data):
             #print data
             target_index_list.append(key+1)
-            convert_data = data.replace("\\\\localhost\\", "").replace("\\", "_").replace(" ", "-")
+            convert_data = data.replace("\\\\localhost\\", "").replace("\\", "_").replace(" ", "-").replace(".", "_")
             string_convert_list.append(convert_data + " => \"float\"")
             new_heading_list.append(convert_data.replace("\"", ""))
 
@@ -127,9 +167,8 @@ for i in range(iterate-1):
     awk_str = awk_str + " $" + str(target_index_list[i]) + "\",\""
 awk_str = '{\'print' + awk_str + " $" + str(target_index_list[iterate-1]) + '\'}'
 cmd_esxtop = "esxtop --import-entity {} -b -n {} -d {} -c {}" \
-             "| grep -v localhost | awk -F \",\" {} > esxtop.csv"\
+             "| grep -v localhost | awk -F \",\" {} > rackhd_esxtop.csv"\
     .format(ENTITY_FILE, str(count), delay, ESXTOP_CONFIG_FILE, awk_str)
-
 
 ###########################################################################
 ##This portion is to generate logstash configure file
@@ -142,7 +181,7 @@ headings = str(new_heading_list)
 logstash_string = \
     'input {\n' \
     '    file {\n' \
-    '        path => ["./esxtop.csv"]\n' \
+    '        path => ["/tmp/rackhd_esxtop.csv"]\n' \
     '        start_position => "beginning"\n' \
     '        ignore_older => 0\n' \
     '        sincedb_path => "/dev/null"\n' \
@@ -179,12 +218,10 @@ f.close()
 i = 0
 while i < 10:
     subprocess.call(cmd_esxtop, shell=True)
-    print cmd_esxtop
-    f = open("esxtop.csv", "rU")
+    f = open("rackhd_esxtop.csv", "rU")
     line_count = 0
     for line in f:
         line_count += 1
-    print line_count
     if line_count < count:
         old_count = count
         count = count - line_count
@@ -192,6 +229,5 @@ while i < 10:
         i += 1
     else:
         break
-
 
 #os.remove(ENTITY_FILE)

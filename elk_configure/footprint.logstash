@@ -1,0 +1,130 @@
+input
+{
+    file {
+        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/db_document.js"]
+        type => "rackhd_db_document"
+        start_position => "beginning"
+        ignore_older => 0
+        sincedb_path => "/dev/null"
+    }
+    file {
+        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/cpu.js"]
+        type => "rackhd_cpu"
+        start_position => "beginning"
+        ignore_older => 0
+        sincedb_path => "/dev/null"
+    }
+    file {
+        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/syscpu.js"]
+        type => "rackhd_syscpu"
+        start_position => "beginning"
+        ignore_older => 0
+        sincedb_path => "/dev/null"
+    }
+    file {
+        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/usrcpu.js"]
+        type => "rackhd_usrcpu"
+        start_position => "beginning"
+        ignore_older => 0
+        sincedb_path => "/dev/null"
+    }
+    file {
+        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/rddsk.js"]
+        type => "rackhd_rddsk"
+        start_position => "beginning"
+        ignore_older => 0
+        sincedb_path => "/dev/null"
+    }
+    file {
+        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/wrdsk.js"]
+        type => "rackhd_wrdsk"
+        start_position => "beginning"
+        ignore_older => 0
+        sincedb_path => "/dev/null"
+    }
+    file {
+        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/rnetbw.js"]
+        type => "rackhd_rnetbw"
+        start_position => "beginning"
+        ignore_older => 0
+        sincedb_path => "/dev/null"
+    }
+    file {
+        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/rnet.js"]
+        type => "rackhd_rnet"
+        start_position => "beginning"
+        ignore_older => 0
+        sincedb_path => "/dev/null"
+    }
+    file {
+        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/rsize.js"]
+        type => "rackhd_rsize"
+        start_position => "beginning"
+        ignore_older => 0
+        sincedb_path => "/dev/null"
+    }
+    file {
+        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/snetbw.js"]
+        type => "rackhd_snetbw"
+        start_position => "beginning"
+        ignore_older => 0
+        sincedb_path => "/dev/null"
+    }
+    file {
+        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/snet.js"]
+        type => "rackhd_snet"
+        start_position => "beginning"
+        ignore_older => 0
+        sincedb_path => "/dev/null"
+    }
+    file {
+        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/vsize.js"]
+        type => "rackhd_vsize"
+        start_position => "beginning"
+        ignore_older => 0
+        sincedb_path => "/dev/null"
+    }
+}
+
+filter
+{
+    if [type] == "rackhd_db_document" {
+        grok {
+            match => {
+                "message" => "%{TIMESTAMP_ISO8601:_timestamp:date},%{INT:dataSize:int},%{INT:storageSize:int}"
+            }
+        }
+        date {
+            locale => "en"
+            timezone => "Asia/Hong_Kong"
+            match => [ "_timestamp", "yyyy-MM-dd HH:mm:ss" ]
+            target => ["timestamp"]
+            remove_field => ["_timestamp"]
+        }
+    }
+    else {
+        grok {
+            match => {
+                "message" => "%{TIMESTAMP_ISO8601:_timestamp:date},%{INT:beamsmp:int},%{INT:dhcpd:int},%{INT:mongod:int},%{INT:on-dhcp-proxy:int},%{INT:on-http:int},%{INT:on-syslog:int},%{INT:on-taskgraph:int},%{INT:on-tftp:int},%{INT:total:int}"
+            }
+        }
+        date {
+            locale => "en"
+            timezone => "Asia/Hong_Kong"
+            match => ["_timestamp", "yyyy-MM-dd HH:mm:ss" ]
+            target => ["timestamp"]
+            remove_field => ["_timestamp"]
+        }
+    }
+}
+
+output
+{
+    elasticsearch
+    {
+       hosts => ["localhost:9200"]
+       codec => "json"
+       index => "rackhd_benchmark"
+    }
+}
+

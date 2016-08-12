@@ -1,0 +1,76 @@
+[
+  {
+    "_id": "Krein_Network_Usage",
+    "_type": "search",
+    "_source": {
+      "title": "Krein_Network_Usage",
+      "description": "",
+      "hits": 0,
+      "columns": [
+        "Network-Port(vSwitch0:33554437:36139:Krein)_MBits-Received/sec",
+        "Network-Port(vSwitch0:33554437:36139:Krein)_MBits-Transmitted/sec",
+        "Network-Port(vSwitch6:134217730:36139:Krein)_MBits-Received/sec",
+        "Network-Port(vSwitch6:134217730:36139:Krein)_MBits-Transmitted/sec",
+        "Network-Port(vSwitch8:167772164:36139:Krein)_MBits-Received/sec",
+        "Network-Port(vSwitch8:167772164:36139:Krein)_MBits-Transmitted/sec",
+        "Network-Port(vSwitch8:167772165:36139:Krein)_MBits-Received/sec",
+        "Network-Port(vSwitch8:167772165:36139:Krein)_MBits-Transmitted/sec"
+      ],
+      "sort": [
+        "_score",
+        "desc"
+      ],
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"esxtop\",\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647},\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}}}"
+      }
+    }
+  },
+  {
+    "_id": "CPU_Usage",
+    "_type": "search",
+    "_source": {
+      "title": "CPU_Usage",
+      "description": "",
+      "hits": 0,
+      "columns": [
+        "Group-Cpu(19299:Krein)_%-Used",
+        "Group-Cpu(28868:Ted_DEV_ORA)_%-Used",
+        "Group-Cpu(29116:C6320)_%-Used",
+        "Group-Cpu(3404747:quanta_t41)_%-Used",
+        "Physical-Cpu(_Total)_%-Core-Util-Time"
+      ],
+      "sort": [
+        "_score",
+        "desc"
+      ],
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"esxtop\",\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647},\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}}}"
+      }
+    }
+  },
+  {
+    "_id": "Memory_Usage",
+    "_type": "search",
+    "_source": {
+      "title": "Memory_Usage",
+      "description": "",
+      "hits": 0,
+      "columns": [
+        "Group-Memory(19299:Krein)_Touched-MBytes",
+        "Group-Memory(28868:Ted_DEV_ORA)_Touched-MBytes",
+        "Group-Memory(29116:C6320)_Touched-MBytes",
+        "Group-Memory(3404747:quanta_t41)_Touched-MBytes"
+      ],
+      "sort": [
+        "_score",
+        "desc"
+      ],
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"esxtop\",\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647},\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}}}"
+      }
+    }
+  }
+]

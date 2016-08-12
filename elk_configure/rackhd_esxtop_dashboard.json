@@ -1,0 +1,19 @@
+[
+  {
+    "_id": "rack_hd_normal_dashboard",
+    "_type": "dashboard",
+    "_source": {
+      "title": "rack_hd_normal_dashboard",
+      "hits": 0,
+      "description": "",
+      "panelsJSON": "[{\"id\":\"Picture_Physical_Network\",\"type\":\"visualization\",\"panelIndex\":1,\"size_x\":7,\"size_y\":3,\"col\":1,\"row\":1},{\"id\":\"Picture_VM_CPU_Usage\",\"type\":\"visualization\",\"panelIndex\":2,\"size_x\":7,\"size_y\":3,\"col\":1,\"row\":4},{\"id\":\"Picture_VM_Memory_Usage\",\"type\":\"visualization\",\"panelIndex\":3,\"size_x\":5,\"size_y\":6,\"col\":8,\"row\":1}]",
+      "optionsJSON": "{\"darkTheme\":false}",
+      "uiStateJSON": "{}",
+      "version": 1,
+      "timeRestore": false,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}}}]}"
+      }
+    }
+  }
+]

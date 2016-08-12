@@ -1,0 +1,61 @@
+[
+  {
+    "_id": "Picture_VM_Memory_Usage",
+    "_type": "visualization",
+    "_source": {
+      "title": "Picture_VM_Memory_Usage",
+      "visState": "{\"title\":\"Picture_VM_CPU_Usage\",\"type\":\"line\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"showCircles\":true,\"smoothLines\":false,\"interpolate\":\"linear\",\"scale\":\"linear\",\"drawLinesBetweenPoints\":true,\"radiusRatio\":9,\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"1\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"Group-Memory(19299:Krein)_Touched-MBytes\"}},{\"id\":\"3\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"Group-Memory(28868:Ted_DEV_ORA)_Touched-MBytes\"}},{\"id\":\"4\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"Group-Memory(29116:C6320)_Touched-MBytes\"}},{\"id\":\"5\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"timestamp\",\"interval\":\"custom\",\"customInterval\":\"20s\",\"min_doc_count\":1,\"extended_bounds\":{}}},{\"id\":\"6\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"Group-Memory(3404747:quanta_t41)_Touched-MBytes\"}},{\"id\":\"7\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"Group-Memory(19299:Krein)_Memory-Consumed-Size-MBytes\"}},{\"id\":\"8\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"Group-Memory(28868:Ted_DEV_ORA)_Memory-Consumed-Size-MBytes\"}},{\"id\":\"9\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"Group-Memory(29116:C6320)_Memory-Consumed-Size-MBytes\"}},{\"id\":\"10\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"Group-Memory(3404747:quanta_t41)_Memory-Consumed-Size-MBytes\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{\"vis\":{\"colors\":{\"Average Group-Memory(19299:Krein)_Touched-MBytes\":\"#3F6833\",\"Average Group-Memory(19299:Krein)_Memory-Consumed-Size-MBytes\":\"#3F6833\",\"Average Group-Memory(28868:Ted_DEV_ORA)_Touched-MBytes\":\"#967302\",\"Average Group-Memory(28868:Ted_DEV_ORA)_Memory-Consumed-Size-MBytes\":\"#967302\",\"Average Group-Memory(29116:C6320)_Touched-MBytes\":\"#2F575E\",\"Average Group-Memory(29116:C6320)_Memory-Consumed-Size-MBytes\":\"#2F575E\",\"Average Group-Memory(3404747:quanta_t41)_Touched-MBytes\":\"#99440A\",\"Average Group-Memory(3404747:quanta_t41)_Memory-Consumed-Size-MBytes\":\"#99440A\"},\"legendOpen\":true}}",
+      "description": "",
+      "savedSearchId": "CPU_Usage",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "Picture_Krein_Network_Usage",
+    "_type": "visualization",
+    "_source": {
+      "title": "Picture_Krein_Network_Usage",
+      "visState": "{\"title\":\"New Visualization\",\"type\":\"line\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"showCircles\":true,\"smoothLines\":false,\"interpolate\":\"linear\",\"scale\":\"linear\",\"drawLinesBetweenPoints\":true,\"radiusRatio\":9,\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"1\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"Network-Port(vSwitch0:33554437:36139:Krein)_MBits-Received/sec\"}},{\"id\":\"2\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"timestamp\",\"interval\":\"custom\",\"customInterval\":\"20s\",\"min_doc_count\":1,\"extended_bounds\":{}}},{\"id\":\"3\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"Network-Port(vSwitch0:33554437:36139:Krein)_MBits-Transmitted/sec\"}},{\"id\":\"4\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"Network-Port(vSwitch8:167772164:36139:Krein)_MBits-Received/sec\"}},{\"id\":\"5\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"Network-Port(vSwitch8:167772164:36139:Krein)_MBits-Transmitted/sec\"}},{\"id\":\"6\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"Network-Port(vSwitch8:167772165:36139:Krein)_MBits-Received/sec\"}},{\"id\":\"7\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"Network-Port(vSwitch8:167772165:36139:Krein)_MBits-Transmitted/sec\"}},{\"id\":\"8\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"Network-Port(vSwitch6:134217730:36139:Krein)_MBits-Received/sec\"}},{\"id\":\"9\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"Network-Port(vSwitch6:134217730:36139:Krein)_MBits-Transmitted/sec\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "savedSearchId": "Krein_Network_Usage",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "Picture_Physical_Network",
+    "_type": "visualization",
+    "_source": {
+      "title": "Picture_Physical_Network",
+      "visState": "{\"title\":\"New Visualization\",\"type\":\"line\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"showCircles\":true,\"smoothLines\":false,\"interpolate\":\"linear\",\"scale\":\"linear\",\"drawLinesBetweenPoints\":true,\"radiusRatio\":9,\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"1\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"Network-Port(vSwitch0:33554434:vmnic2)_MBits-Received/sec\"}},{\"id\":\"2\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"Network-Port(vSwitch0:33554434:vmnic2)_MBits-Transmitted/sec\"}},{\"id\":\"3\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"Network-Port(vSwitch1:50331650:vmnic5)_MBits-Received/sec\"}},{\"id\":\"4\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"Network-Port(vSwitch1:50331650:vmnic5)_MBits-Transmitted/sec\"}},{\"id\":\"5\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"Network-Port(vSwitch8:167772162:vmnic3)_MBits-Received/sec\"}},{\"id\":\"6\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"Network-Port(vSwitch8:167772162:vmnic3)_MBits-Transmitted/sec\"}},{\"id\":\"7\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"timestamp\",\"interval\":\"custom\",\"customInterval\":\"20s\",\"min_doc_count\":1,\"extended_bounds\":{}}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"esxtop\",\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "Picture_VM_CPU_Usage",
+    "_type": "visualization",
+    "_source": {
+      "title": "Picture_VM_CPU_Usage",
+      "visState": "{\"title\":\"Picture_VM_CPU_Usage\",\"type\":\"line\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"showCircles\":true,\"smoothLines\":false,\"interpolate\":\"linear\",\"scale\":\"linear\",\"drawLinesBetweenPoints\":true,\"radiusRatio\":9,\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"1\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"Group-Cpu(19299:Krein)_%-Used\"}},{\"id\":\"2\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"Group-Cpu(28868:Ted_DEV_ORA)_%-Used\"}},{\"id\":\"3\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"Group-Cpu(29116:C6320)_%-Used\"}},{\"id\":\"4\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"Group-Cpu(3404747:quanta_t41)_%-Used\"}},{\"id\":\"5\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"timestamp\",\"interval\":\"custom\",\"customInterval\":\"20s\",\"min_doc_count\":1,\"extended_bounds\":{}}},{\"id\":\"6\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"Physical-Cpu(_Total)_%-Core-Util-Time\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "savedSearchId": "CPU_Usage",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
+      }
+    }
+  }
+]
