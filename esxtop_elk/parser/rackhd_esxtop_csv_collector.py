@@ -1,11 +1,17 @@
 #!/usr/bin/env python
-
+"""
+This script implemented 3 functions:
+    1. Collect esxtop performance data
+    2. Generate logstash configure file
+    3. Generate kibana configure file
+"""
 import re
 import os
 import argparse
 import subprocess
-import json
+import configure_file_generator as generator
 
+# pylint: disable=invalid-name, anomalous-backslash-in-string, line-too-long, anomalous-unicode-escape-in-string
 parser = argparse.ArgumentParser(description='esxtop csv file parser')
 parser.add_argument("-d", action="store", default="20", help="Samples interval")
 parser.add_argument("-n", action="store", default="2500", type=int, help="Samples count")
@@ -29,12 +35,12 @@ entity_config = args_list.entity
 LOGSTASH_CONFIG_FILE = args_list.logstash
 ESXTOP_CONFIG_FILE = args_list.c
 KIBANA_CONFIG_TEMPLATE = args_list.kibana
-KIBANA_CONFIG_FLIE = "rackhd_esxtop_kibana.json"
+KIBANA_CONFIG_FILE = "rackhd_esxtop_kibana.json"
 
 OLD_ENTITY_FILE = "rackhd_esxtop.entity.origin"
 ENTITY_FILE = "rackhd_esxtop.entity" if (entity_config == "none") else entity_config
 
-all_vm_list = [];
+all_vm_list = []
 all_nic_list = []
 ###########################################################################
 ##This portion is to edit esxtop entity to reduce esxtop output size
@@ -151,7 +157,7 @@ if nic_list[0] != "none":
         patten_list.append(re.compile(net_string, re.I))
 
 target_index_list = []
-new_heading_list = []
+target_heading_list = []
 string_convert_list = []
 for (key, data) in enumerate(old_heading_list):
     #print data
@@ -161,7 +167,7 @@ for (key, data) in enumerate(old_heading_list):
             target_index_list.append(key+1)
             convert_data = data.replace("\\\\localhost\\", "").replace("\\", "_").replace(" ", "-").replace(".", "_")
             string_convert_list.append(convert_data + " => \"float\"")
-            new_heading_list.append(convert_data.replace("\"", ""))
+            target_heading_list.append(convert_data.replace("\"", ""))
 
 ###########################################################################
 ## This portion is to create awk script
@@ -177,135 +183,10 @@ cmd_esxtop = "esxtop --import-entity {} -b -n {} -d {} -c {}" \
     .format(ENTITY_FILE, str(count), delay, ESXTOP_CONFIG_FILE, awk_str)
 
 ###########################################################################
-##This portion is to generate logstash configure file
+## This portion is to generate logstash and kibana configure file
 ###########################################################################
-f = open(LOGSTASH_CONFIG_FILE, "w")
-new_heading_list[0] = "_timestamp"
-del string_convert_list[0]
-converting_list = "\n            ".join(string_convert_list)
-headings = str(new_heading_list)
-logstash_string = \
-    'input {\n' \
-    '    file {\n' \
-    '        path => ["/tmp/rackhd_esxtop.csv"]\n' \
-    '        start_position => "beginning"\n' \
-    '        ignore_older => 0\n' \
-    '        sincedb_path => "/dev/null"\n' \
-    '    }\n' \
-    '}\n' \
-    '\n' \
-    'filter {\n' \
-    '    csv {\n' \
-    '        columns => ' + headings + '\n' \
-    '        separator => ","\n' \
-    '        convert => {\n            ' + converting_list + '}\n' \
-    '    }\n' \
-    '    date {\n' \
-    '        locale => "en"\n' \
-    '        timezone => "Asia/Hong_Kong"\n' \
-    '        match => [ "_timestamp", "MM/dd/yyyy HH:mm:ss" ]\n' \
-    '        target => ["timestamp"]\n' \
-    '        remove_field => ["_timestamp"]\n' \
-    '    }\n' \
-    '}\n' \
-    '\n' \
-    'output{\n' \
-    '    elasticsearch\n' \
-    '    {\n' \
-    '       hosts => ["localhost:9200"]\n' \
-    '       codec => "json"\n' \
-    '       index => "esxtop"\n' \
-    '    }\n' \
-    '}'
-f.write(logstash_string)
-f.close()
-
-
-###########################################################################
-## This portion is to add retry mechanism
-###########################################################################
-f_old_kibana = open(KIBANA_CONFIG_TEMPLATE, "r")
-kibana_json_example = json.load(f_old_kibana)
-kibana_json = []
-#kibana_json_new = []
-#kibana_json_new[0] = kibana_json_example[0]
-dashboard_json_list = []
-visualization_json_list = []
-for configure in kibana_json_example:
-    if configure["_type"] == "visualization":
-        visualization_json_list.append(configure)
-    elif configure["_type"] == "dashboard":
-        ## All dashboard items are fixed, nothing should be changed
-        ## dashboard_json_list.append(configure)
-        kibana_json.append(configure)
-
-
-vis_json_example = visualization_json_list[0]
-vis_state_example = json.loads(vis_json_example["_source"]["visState"])
-aggregate_metric = {
-    "schema": "metric",
-    "id": "0",
-    "type": "avg", ## "max" should be used for network
-    "params": {
-        "field": ""
-    }
-}
-aggregate_bullet = {
-    "schema": "segment",
-    "id": "0",
-    "type": "date_histogram",
-    "params": {
-        "min_doc_count": 1,
-        "extended_bounds": {},
-        "interval": "custom",
-        "field": "timestamp",
-        "customInterval": "20s"
-    }
-}
-
-vis_aggregates = [[], [], []] ## aggregate list for each visualization
-vis_indexes = [1, 1, 1] ## index of metrics/bullets for each visualization
-vis_titles = ["cpu_usage", "memory_usage", "physical_network_usage"]
-vis_pattens = [
-    re.compile("(Group-Cpu\(\d+\:[\w_-]+\)_\%_Used|Physical-Cpu\(_Total\)_\%-Core-Util-Time)", re.I),
-    re.compile("Group-Memory\(\d+\:[\w_-]+\)_(Memory-Consumed-Size|Touched)-MBytes", re.I),
-    re.compile("Network-Port\(vSwitch\d+:\d+\:vmnic\d+\)_MBits_(Transmitted|Received)\/sec", re.I)
-]
-
-#### Filter CPU, Memory and network headings and create relative aggregates list
-for heading in new_heading_list:
-    for (index, patten) in enumerate(vis_pattens):
-        if vis_pattens[index].match(heading):
-            vis_indexes[index] += 1
-            metric_copy = aggregate_metric.copy()
-            metric_copy["id"] = str(vis_indexes[index])
-            metric_copy["params"]["field"] = heading
-            vis_aggregates[index].append(metric_copy)
-            break
-#### Generate Kibana configure list for visualization
-for (index, value) in enumerate(vis_indexes):
-    vis_title = vis_titles[index]
-    ## Add bullet description
-    bullet_copy = aggregate_bullet.copy()
-    bullet_copy["id"] = str(value)
-    ## Update visState attribute
-    vis_aggregates[index].append(bullet_copy)
-    vi_state_copy = vis_state_example.copy()
-    vi_state_copy["title"] = vis_title
-    vi_state_copy["agg"] = vis_aggregates[index]
-    ## Update title, id for each visualization
-    vis_json = vis_json_example.copy()
-    vis_json["_id"] = vis_title
-    vis_json["_source"]["title"] = vis_title
-    vis_json["_source"]["visState"] = json.dumps(vi_state_copy)
-    kibana_json.append(vis_json)
-
-f_new_kibana = open(KIBANA_CONFIG_FLIE, "w")
-json.dump(kibana_json, f_new_kibana)
-
-f_new_kibana.close()
-f_old_kibana.close()
-
+generator.create_logstash(target_heading_list, string_convert_list, LOGSTASH_CONFIG_FILE)
+generator.create_kibana(target_heading_list, KIBANA_CONFIG_TEMPLATE, KIBANA_CONFIG_FILE)
 
 ###########################################################################
 ## This portion is to add retry mechanism
@@ -324,5 +205,3 @@ while i < 10:
         i += 1
     else:
         break
-
-#os.remove(ENTITY_FILE)

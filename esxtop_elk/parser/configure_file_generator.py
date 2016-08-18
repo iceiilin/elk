@@ -1,9 +1,13 @@
 #!/usr/bin/env python
+"""
+This script is used to auto-generate kibana configure file for esxtop performance charts
+"""
 import re
 import copy
 import json
 
-heading_list = [
+# pylint: disable=line-too-long, anomalous-backslash-in-string, too-many-locals
+HEADINGS = [
     '_timestamp',
     'Memory_Memory-Overcommit-(1-Minute-Avg)',
     'Physical-Cpu-Load_Cpu-Load-(1-Minute-Avg)',
@@ -106,7 +110,8 @@ heading_list = [
     }
 }
 """
-def generat_kibana_json(heading_list, template, configure_file):
+
+def create_kibana(heading_list, template, configure_file):
     """
     :param heading_list: headings_list includes headings in elasticsearchs
     :param template: template is a kibana configure json template. Dashboard configure is hard-coded and visualization
@@ -130,7 +135,7 @@ def generat_kibana_json(heading_list, template, configure_file):
     aggregate_metric = {
         "schema": "metric",
         "id": "0",
-        "type": "avg", ## "max" should be used for network
+        "type": "avg", ## "max" should be used for network, "median" is more real
         "params": {
             "field": ""
         }
@@ -150,7 +155,8 @@ def generat_kibana_json(heading_list, template, configure_file):
 
     vis_aggregates = [[], [], []] ## aggregate list for each visualization
     vis_indexes = [1, 1, 1] ## index of metrics/bullets for each visualization
-    vis_titles = ["cpu_usage", "memory_usage", "physical_network_usage"]
+    vis_metric_type = ["median", "avg", "max"] ## define metric type for each visualizations
+    vis_titles = ["cpu_usage", "memory_usage", "physical_network_usage"] ## visualization names
     vis_pattens = [
         re.compile("(Group-Cpu\(\d+\:[\w_-]+\)_\%-Used|Physical-Cpu\(_Total\)_\%-Core-Util-Time)", re.I),
         re.compile("Group-Memory\(\d+\:[\w_-]+\)_(Memory-Consumed-Size|Touched)-MBytes", re.I),
@@ -159,10 +165,12 @@ def generat_kibana_json(heading_list, template, configure_file):
 
     #### Filter CPU, Memory and network headings and create relative aggregates list
     for heading in heading_list:
-       for (index, patten) in enumerate(vis_pattens):
+        for (index, patten) in enumerate(vis_pattens):
             if patten.match(heading):
                 metric_copy = copy.deepcopy(aggregate_metric)
                 metric_copy["id"] = str(vis_indexes[index])
+                ## metric type will be cpu => median, memory => avg, network => max
+                metric_copy["type"] = vis_metric_type[index]
                 vis_indexes[index] += 1
                 metric_copy["params"]["field"] = heading
                 vis_aggregates[index].append(metric_copy)
@@ -192,5 +200,54 @@ def generat_kibana_json(heading_list, template, configure_file):
     f_new_kibana.close()
     f_old_kibana.close()
 
+def create_logstash(heading_list, convert_list, config_file_name):
+    """
+    :param heading_list: headings_list filtered to be delivered to logstash
+    :param convert_list: columns that should be transfer from string to number
+    :param configure_file_name: Generated logstash configure file name
+    :return:
+    """
+    f_logstash = open(config_file_name, "w")
+    heading_list[0] = "_timestamp"
+    del convert_list[0]
+    converting_list = "\n            ".join(convert_list)
+    headings = str(heading_list)
+    logstash_string = \
+        'input {\n' \
+        '    file {\n' \
+        '        path => ["/tmp/rackhd_esxtop.csv"]\n' \
+        '        start_position => "beginning"\n' \
+        '        ignore_older => 0\n' \
+        '        sincedb_path => "/dev/null"\n' \
+        '    }\n' \
+        '}\n' \
+        '\n' \
+        'filter {\n' \
+        '    csv {\n' \
+        '        columns => ' + headings + '\n' \
+        '        separator => ","\n' \
+        '        convert => {\n            ' + converting_list + '}\n' \
+        '    }\n' \
+        '    date {\n' \
+        '        locale => "en"\n' \
+        '        timezone => "Asia/Hong_Kong"\n' \
+        '        match => [ "_timestamp", "MM/dd/yyyy HH:mm:ss" ]\n' \
+        '        target => ["timestamp"]\n' \
+        '        remove_field => ["_timestamp"]\n' \
+        '    }\n' \
+        '}\n' \
+        '\n' \
+        'output{\n' \
+        '    elasticsearch\n' \
+        '    {\n' \
+        '       hosts => ["localhost:9200"]\n' \
+        '       codec => "json"\n' \
+        '       index => "esxtop"\n' \
+        '    }\n' \
+        '}'
+    f_logstash.write(logstash_string)
+    f_logstash.close()
+
+
 if __name__ == "__main__":
-    generat_kibana_json(heading_list, "rackhd_esxtop_template.json", "rackhd_esxtop_debug.json")
+    create_kibana(HEADINGS, "rackhd_esxtop_template.json", "rackhd_esxtop_debug.json")
