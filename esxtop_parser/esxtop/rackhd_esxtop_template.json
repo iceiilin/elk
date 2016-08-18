@@ -1,0 +1,33 @@
+[
+  {
+    "_id": "rack_hd_normal_dashboard",
+    "_type": "dashboard",
+    "_source": {
+      "title": "rack_hd_normal_dashboard",
+      "hits": 0,
+      "description": "",
+      "panelsJSON": "[{\"id\":\"physical_network_usage\",\"type\":\"visualization\",\"panelIndex\":1,\"size_x\":7,\"size_y\":3,\"col\":1,\"row\":1},{\"id\":\"cpu_usage\",\"type\":\"visualization\",\"panelIndex\":2,\"size_x\":7,\"size_y\":3,\"col\":1,\"row\":4},{\"id\":\"memory_usage\",\"type\":\"visualization\",\"panelIndex\":3,\"size_x\":5,\"size_y\":6,\"col\":8,\"row\":1}]",
+      "optionsJSON": "{\"darkTheme\":false}",
+      "uiStateJSON": "{}",
+      "version": 1,
+      "timeRestore": false,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}}}]}"
+      }
+    }
+  },
+  {
+    "_id": "cpu_usage",
+    "_type": "visualization",
+    "_source": {
+      "title": "cpu_usage",
+      "visState": "{\"title\":\"cpu_usage\",\"type\":\"line\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"showCircles\":true,\"smoothLines\":false,\"interpolate\":\"linear\",\"scale\":\"linear\",\"drawLinesBetweenPoints\":true,\"radiusRatio\":9,\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"1\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"Group-Cpu(19299:Krein)_%-Used\"}},{\"id\":\"2\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"Group-Cpu(28868:Ted_DEV_ORA)_%-Used\"}},{\"id\":\"3\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"Group-Cpu(29116:C6320)_%-Used\"}},{\"id\":\"4\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"Group-Cpu(3404747:quanta_t41)_%-Used\"}},{\"id\":\"5\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"timestamp\",\"interval\":\"custom\",\"customInterval\":\"20s\",\"min_doc_count\":1,\"extended_bounds\":{}}},{\"id\":\"6\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"Physical-Cpu(_Total)_%-Core-Util-Time\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[],\"index\":\"esxtop\",\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647},\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}}}"
+      }
+    }
+  }
+]

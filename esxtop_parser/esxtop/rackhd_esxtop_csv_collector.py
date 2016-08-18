@@ -4,34 +4,38 @@ import re
 import os
 import argparse
 import subprocess
-
+import json
 
 parser = argparse.ArgumentParser(description='esxtop csv file parser')
 parser.add_argument("-d", action="store", default="20", help="Samples interval")
 parser.add_argument("-n", action="store", default="2500", type=int, help="Samples count")
-parser.add_argument("-c", action="store", default="none", help="Specify esxtop configure file")
+parser.add_argument("-c", action="store", default="rackhd_esxtop60rc",
+                    help="Specify esxtop configure file")
 parser.add_argument("--nic", action="store", default="none", help="vmnic name")
 parser.add_argument("--vm", action="store", default="none", help="Virtual Machine host list")
 parser.add_argument("--entity", action="store", default="none", help="Specify entity file")
-parser.add_argument("--logstash", action="store", default="none", help="Generate logstash configure flag")
-parser.add_argument("--path", action="store", default="\\tmp\\", help="csv file path")
+parser.add_argument("--logstash", action="store", default="rackhd_esxtop.logstash",
+                    help="Generate logstash configure flag")
+parser.add_argument("--kibana", action="store", default="rackhd_esxtop_template.json",
+                    help="Generate kibana configure flag")
+#parser.add_argument("--path", action="store", default="\\tmp\\", help="csv file path")
 args_list = parser.parse_args()
 
 delay = args_list.d
 count = args_list.n
 vm_list = args_list.vm.split(",")
 nic_list = args_list.nic.split(",")
-logstash_config = args_list.logstash
-esxtop_config = args_list.c
 entity_config = args_list.entity
-config_path = args_list.path
+LOGSTASH_CONFIG_FILE = args_list.logstash
+ESXTOP_CONFIG_FILE = args_list.c
+KIBANA_CONFIG_TEMPLATE = args_list.kibana
+KIBANA_CONFIG_FLIE = "rackhd_esxtop_kibana.json"
 
 OLD_ENTITY_FILE = "rackhd_esxtop.entity.origin"
 ENTITY_FILE = "rackhd_esxtop.entity" if (entity_config == "none") else entity_config
-LOGSTASH_CONFIG_FILE = "rackhd_esxtop.logstash" if (logstash_config == "none") else logstash_config
-ESXTOP_CONFIG_FILE = "rackhd_esxtop60rc" if (esxtop_config == "none") else esxtop_config
 
-
+all_vm_list = [];
+all_nic_list = []
 ###########################################################################
 ##This portion is to edit esxtop entity to reduce esxtop output size
 ###########################################################################
@@ -40,7 +44,7 @@ if entity_config == "none":
     subprocess.call(cmd_entity, shell=True)
     f_old_entity = open(OLD_ENTITY_FILE, "r")
     f_new_entity = open(ENTITY_FILE, "w")
-    ## flag = 1,2,3,4,5 stands for SchedGroup, Adapter, Device, NetPort, InterruptCookie sections respectively
+    ## flag=1,2,3,4,5 stands for SchedGroup, Adapter, Device, NetPort, InterruptCookie respectively
     flag = 0
     ## Process "helper", "drivers", "ft" and "vmotion" will be dropped, "system" and "idle" is kept
     process_anti_patten = re.compile("\d+ ([A-Za-z\-\_]+\.\d+|helper|drivers|ft|vmotion|system|idle)", re.I)
@@ -53,8 +57,10 @@ if entity_config == "none":
                 f_new_entity.write(line)
         elif flag == 1 and not process_anti_patten.match(stripped_line):
             f_new_entity.write(line)
+            all_vm_list.append(stripped_line)
         elif flag == 4 and not network_anti_patten.match(stripped_line):
             f_new_entity.write(line)
+            all_nic_list.append(stripped_line)
     f_old_entity.close()
     f_new_entity.close()
     os.remove(OLD_ENTITY_FILE)
@@ -215,6 +221,95 @@ f.write(logstash_string)
 f.close()
 
 
+###########################################################################
+## This portion is to add retry mechanism
+###########################################################################
+f_old_kibana = open(KIBANA_CONFIG_TEMPLATE, "r")
+kibana_json_example = json.load(f_old_kibana)
+kibana_json = []
+#kibana_json_new = []
+#kibana_json_new[0] = kibana_json_example[0]
+dashboard_json_list = []
+visualization_json_list = []
+for configure in kibana_json_example:
+    if configure["_type"] == "visualization":
+        visualization_json_list.append(configure)
+    elif configure["_type"] == "dashboard":
+        ## All dashboard items are fixed, nothing should be changed
+        ## dashboard_json_list.append(configure)
+        kibana_json.append(configure)
+
+
+vis_json_example = visualization_json_list[0]
+vis_state_example = json.loads(vis_json_example["_source"]["visState"])
+aggregate_metric = {
+    "schema": "metric",
+    "id": "0",
+    "type": "avg", ## "max" should be used for network
+    "params": {
+        "field": ""
+    }
+}
+aggregate_bullet = {
+    "schema": "segment",
+    "id": "0",
+    "type": "date_histogram",
+    "params": {
+        "min_doc_count": 1,
+        "extended_bounds": {},
+        "interval": "custom",
+        "field": "timestamp",
+        "customInterval": "20s"
+    }
+}
+
+vis_aggregates = [[], [], []] ## aggregate list for each visualization
+vis_indexes = [1, 1, 1] ## index of metrics/bullets for each visualization
+vis_titles = ["cpu_usage", "memory_usage", "physical_network_usage"]
+vis_pattens = [
+    re.compile("(Group-Cpu\(\d+\:[\w_-]+\)_\%_Used|Physical-Cpu\(_Total\)_\%-Core-Util-Time)", re.I),
+    re.compile("Group-Memory\(\d+\:[\w_-]+\)_(Memory-Consumed-Size|Touched)-MBytes", re.I),
+    re.compile("Network-Port\(vSwitch\d+:\d+\:vmnic\d+\)_MBits_(Transmitted|Received)\/sec", re.I)
+]
+
+#### Filter CPU, Memory and network headings and create relative aggregates list
+for heading in new_heading_list:
+    for (index, patten) in enumerate(vis_pattens):
+        if vis_pattens[index].match(heading):
+            vis_indexes[index] += 1
+            metric_copy = aggregate_metric.copy()
+            metric_copy["id"] = str(vis_indexes[index])
+            metric_copy["params"]["field"] = heading
+            vis_aggregates[index].append(metric_copy)
+            break
+#### Generate Kibana configure list for visualization
+for (index, value) in enumerate(vis_indexes):
+    vis_title = vis_titles[index]
+    ## Add bullet description
+    bullet_copy = aggregate_bullet.copy()
+    bullet_copy["id"] = str(value)
+    ## Update visState attribute
+    vis_aggregates[index].append(bullet_copy)
+    vi_state_copy = vis_state_example.copy()
+    vi_state_copy["title"] = vis_title
+    vi_state_copy["agg"] = vis_aggregates[index]
+    ## Update title, id for each visualization
+    vis_json = vis_json_example.copy()
+    vis_json["_id"] = vis_title
+    vis_json["_source"]["title"] = vis_title
+    vis_json["_source"]["visState"] = json.dumps(vi_state_copy)
+    kibana_json.append(vis_json)
+
+f_new_kibana = open(KIBANA_CONFIG_FLIE, "w")
+json.dump(kibana_json, f_new_kibana)
+
+f_new_kibana.close()
+f_old_kibana.close()
+
+
+###########################################################################
+## This portion is to add retry mechanism
+###########################################################################
 i = 0
 while i < 10:
     subprocess.call(cmd_esxtop, shell=True)
