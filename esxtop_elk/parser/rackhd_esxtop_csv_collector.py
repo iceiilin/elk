@@ -27,18 +27,21 @@ parser.add_argument("--kibana", action="store", default="rackhd_esxtop_template.
 #parser.add_argument("--path", action="store", default="\\tmp\\", help="csv file path")
 args_list = parser.parse_args()
 
+execute_path = os.path.split(os.path.realpath(__file__))[0] + "/"
+
 delay = args_list.d
 count = args_list.n
 vm_list = args_list.vm.split(",")
 nic_list = args_list.nic.split(",")
 entity_config = args_list.entity
-LOGSTASH_CONFIG_FILE = args_list.logstash
-ESXTOP_CONFIG_FILE = args_list.c
-KIBANA_CONFIG_TEMPLATE = args_list.kibana
-KIBANA_CONFIG_FILE = "rackhd_esxtop_kibana.json"
+LOGSTASH_CONFIG_FILE = execute_path + args_list.logstash
+ESXTOP_CONFIG_FILE = execute_path + args_list.c
+KIBANA_CONFIG_TEMPLATE = execute_path + args_list.kibana
+KIBANA_CONFIG_FILE = execute_path + "rackhd_esxtop_kibana.json"
 
-OLD_ENTITY_FILE = "rackhd_esxtop.entity.origin"
-ENTITY_FILE = "rackhd_esxtop.entity" if (entity_config == "none") else entity_config
+
+OLD_ENTITY_FILE = execute_path + "rackhd_esxtop.entity.origin"
+ENTITY_FILE = execute_path + "rackhd_esxtop.entity" if (entity_config == "none") else execute_path + entity_config
 
 all_vm_list = []
 all_nic_list = []
@@ -179,8 +182,8 @@ for i in range(iterate-1):
     awk_str = awk_str + " $" + str(target_index_list[i]) + "\",\""
 awk_str = '{\'print' + awk_str + " $" + str(target_index_list[iterate-1]) + '\'}'
 cmd_esxtop = "esxtop --import-entity {} -b -n {} -d {} -c {}" \
-             "| grep -v localhost | awk -F \",\" {} > rackhd_esxtop.csv"\
-    .format(ENTITY_FILE, str(count), delay, ESXTOP_CONFIG_FILE, awk_str)
+             "| grep -v localhost | awk -F \",\" {} > {}rackhd_esxtop.csv"\
+    .format(ENTITY_FILE, str(count), delay, ESXTOP_CONFIG_FILE, awk_str, execute_path)
 
 ###########################################################################
 ## This portion is to generate logstash and kibana configure file
@@ -194,7 +197,7 @@ generator.create_kibana(target_heading_list, KIBANA_CONFIG_TEMPLATE, KIBANA_CONF
 i = 0
 while i < 10:
     subprocess.call(cmd_esxtop, shell=True)
-    f = open("rackhd_esxtop.csv", "rU")
+    f = open(execute_path + "rackhd_esxtop.csv", "rU")
     line_count = 0
     for line in f:
         line_count += 1
