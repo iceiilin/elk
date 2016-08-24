@@ -1,0 +1,83 @@
+input {
+    file {
+        path => ["/tmp/rackhd_esxtop.csv"]
+        start_position => "beginning"
+        ignore_older => 0
+        sincedb_path => "/dev/null"
+    }
+}
+
+filter {
+    csv {
+        columns => ['_timestamp', 'Memory_Memory-Overcommit-(1-Minute-Avg)', 'Memory_Memory-Overcommit-(5-Minute-Avg)', 'Physical-Cpu-Load_Cpu-Load-(1-Minute-Avg)', 'Physical-Cpu-Load_Cpu-Load-(5-Minute-Avg)', 'Physical-Cpu(_Total)_%-Processor-Time', 'Physical-Cpu(_Total)_%-Util-Time', 'Physical-Cpu(_Total)_%-Core-Util-Time', 'Group-Cpu(19299:Krein)_%-Used', 'Group-Cpu(28868:Ted_DEV_ORA)_%-Used', 'Group-Cpu(29116:C6320)_%-Used', 'Group-Cpu(3404747:quanta_t41)_%-Used', 'Group-Memory(19299:Krein)_Memory-Consumed-Size-MBytes', 'Group-Memory(19299:Krein)_Touched-MBytes', 'Group-Memory(28868:Ted_DEV_ORA)_Memory-Consumed-Size-MBytes', 'Group-Memory(28868:Ted_DEV_ORA)_Touched-MBytes', 'Group-Memory(29116:C6320)_Memory-Consumed-Size-MBytes', 'Group-Memory(29116:C6320)_Touched-MBytes', 'Group-Memory(3404747:quanta_t41)_Memory-Consumed-Size-MBytes', 'Group-Memory(3404747:quanta_t41)_Touched-MBytes', 'Network-Port(vSwitch0:33554434:vmnic2)_MBits-Transmitted/sec', 'Network-Port(vSwitch0:33554434:vmnic2)_MBits-Received/sec', 'Network-Port(vSwitch0:33554437:36139:Krein)_MBits-Transmitted/sec', 'Network-Port(vSwitch0:33554437:36139:Krein)_MBits-Received/sec', 'Network-Port(vSwitch0:33554439:439857:Leo_DevVM_Ubun1404_ESX_10_62_59_185)_MBits-Transmitted/sec', 'Network-Port(vSwitch0:33554439:439857:Leo_DevVM_Ubun1404_ESX_10_62_59_185)_MBits-Received/sec', 'Network-Port(vSwitch0:33554440:439857:Leo_DevVM_Ubun1404_ESX_10_62_59_185)_MBits-Transmitted/sec', 'Network-Port(vSwitch0:33554440:439857:Leo_DevVM_Ubun1404_ESX_10_62_59_185)_MBits-Received/sec', 'Network-Port(vSwitch0:33554441:439874:Ubuntu-14_04-LTS-Server-(20160602)_10_62_59_186)_MBits-Transmitted/sec', 'Network-Port(vSwitch0:33554441:439874:Ubuntu-14_04-LTS-Server-(20160602)_10_62_59_186)_MBits-Received/sec', 'Network-Port(vSwitch0:33554442:1087943:Ted_DEV_ORA)_MBits-Transmitted/sec', 'Network-Port(vSwitch0:33554442:1087943:Ted_DEV_ORA)_MBits-Received/sec', 'Network-Port(vSwitch1:50331650:vmnic5)_MBits-Transmitted/sec', 'Network-Port(vSwitch1:50331650:vmnic5)_MBits-Received/sec', 'Network-Port(vSwitch6:134217730:36139:Krein)_MBits-Transmitted/sec', 'Network-Port(vSwitch6:134217730:36139:Krein)_MBits-Received/sec', 'Network-Port(vSwitch6:134217731:506106:quanta_t41)_MBits-Transmitted/sec', 'Network-Port(vSwitch6:134217731:506106:quanta_t41)_MBits-Received/sec', 'Network-Port(vSwitch7:150994947:37511:C6320)_MBits-Transmitted/sec', 'Network-Port(vSwitch7:150994947:37511:C6320)_MBits-Received/sec', 'Network-Port(vSwitch7:150994948:1087943:Ted_DEV_ORA)_MBits-Transmitted/sec', 'Network-Port(vSwitch7:150994948:1087943:Ted_DEV_ORA)_MBits-Received/sec', 'Network-Port(vSwitch8:167772162:vmnic3)_MBits-Transmitted/sec', 'Network-Port(vSwitch8:167772162:vmnic3)_MBits-Received/sec', 'Network-Port(vSwitch8:167772164:36139:Krein)_MBits-Transmitted/sec', 'Network-Port(vSwitch8:167772164:36139:Krein)_MBits-Received/sec', 'Network-Port(vSwitch8:167772165:36139:Krein)_MBits-Transmitted/sec', 'Network-Port(vSwitch8:167772165:36139:Krein)_MBits-Received/sec', 'Network-Port(vSwitch8:167772168:1087943:Ted_DEV_ORA)_MBits-Transmitted/sec', 'Network-Port(vSwitch8:167772168:1087943:Ted_DEV_ORA)_MBits-Received/sec', 'Network-Port(vSwitch8:167772169:1087943:Ted_DEV_ORA)_MBits-Transmitted/sec', 'Network-Port(vSwitch8:167772169:1087943:Ted_DEV_ORA)_MBits-Received/sec']
+        separator => ","
+        convert => {
+            "Memory_Memory-Overcommit-(1-Minute-Avg)" => "float"
+            "Memory_Memory-Overcommit-(5-Minute-Avg)" => "float"
+            "Physical-Cpu-Load_Cpu-Load-(1-Minute-Avg)" => "float"
+            "Physical-Cpu-Load_Cpu-Load-(5-Minute-Avg)" => "float"
+            "Physical-Cpu(_Total)_%-Processor-Time" => "float"
+            "Physical-Cpu(_Total)_%-Util-Time" => "float"
+            "Physical-Cpu(_Total)_%-Core-Util-Time" => "float"
+            "Group-Cpu(19299:Krein)_%-Used" => "float"
+            "Group-Cpu(28868:Ted_DEV_ORA)_%-Used" => "float"
+            "Group-Cpu(29116:C6320)_%-Used" => "float"
+            "Group-Cpu(3404747:quanta_t41)_%-Used" => "float"
+            "Group-Memory(19299:Krein)_Memory-Consumed-Size-MBytes" => "float"
+            "Group-Memory(19299:Krein)_Touched-MBytes" => "float"
+            "Group-Memory(28868:Ted_DEV_ORA)_Memory-Consumed-Size-MBytes" => "float"
+            "Group-Memory(28868:Ted_DEV_ORA)_Touched-MBytes" => "float"
+            "Group-Memory(29116:C6320)_Memory-Consumed-Size-MBytes" => "float"
+            "Group-Memory(29116:C6320)_Touched-MBytes" => "float"
+            "Group-Memory(3404747:quanta_t41)_Memory-Consumed-Size-MBytes" => "float"
+            "Group-Memory(3404747:quanta_t41)_Touched-MBytes" => "float"
+            "Network-Port(vSwitch0:33554434:vmnic2)_MBits-Transmitted/sec" => "float"
+            "Network-Port(vSwitch0:33554434:vmnic2)_MBits-Received/sec" => "float"
+            "Network-Port(vSwitch0:33554437:36139:Krein)_MBits-Transmitted/sec" => "float"
+            "Network-Port(vSwitch0:33554437:36139:Krein)_MBits-Received/sec" => "float"
+            "Network-Port(vSwitch0:33554439:439857:Leo_DevVM_Ubun1404_ESX_10_62_59_185)_MBits-Transmitted/sec" => "float"
+            "Network-Port(vSwitch0:33554439:439857:Leo_DevVM_Ubun1404_ESX_10_62_59_185)_MBits-Received/sec" => "float"
+            "Network-Port(vSwitch0:33554440:439857:Leo_DevVM_Ubun1404_ESX_10_62_59_185)_MBits-Transmitted/sec" => "float"
+            "Network-Port(vSwitch0:33554440:439857:Leo_DevVM_Ubun1404_ESX_10_62_59_185)_MBits-Received/sec" => "float"
+            "Network-Port(vSwitch0:33554441:439874:Ubuntu-14_04-LTS-Server-(20160602)_10_62_59_186)_MBits-Transmitted/sec" => "float"
+            "Network-Port(vSwitch0:33554441:439874:Ubuntu-14_04-LTS-Server-(20160602)_10_62_59_186)_MBits-Received/sec" => "float"
+            "Network-Port(vSwitch0:33554442:1087943:Ted_DEV_ORA)_MBits-Transmitted/sec" => "float"
+            "Network-Port(vSwitch0:33554442:1087943:Ted_DEV_ORA)_MBits-Received/sec" => "float"
+            "Network-Port(vSwitch1:50331650:vmnic5)_MBits-Transmitted/sec" => "float"
+            "Network-Port(vSwitch1:50331650:vmnic5)_MBits-Received/sec" => "float"
+            "Network-Port(vSwitch6:134217730:36139:Krein)_MBits-Transmitted/sec" => "float"
+            "Network-Port(vSwitch6:134217730:36139:Krein)_MBits-Received/sec" => "float"
+            "Network-Port(vSwitch6:134217731:506106:quanta_t41)_MBits-Transmitted/sec" => "float"
+            "Network-Port(vSwitch6:134217731:506106:quanta_t41)_MBits-Received/sec" => "float"
+            "Network-Port(vSwitch7:150994947:37511:C6320)_MBits-Transmitted/sec" => "float"
+            "Network-Port(vSwitch7:150994947:37511:C6320)_MBits-Received/sec" => "float"
+            "Network-Port(vSwitch7:150994948:1087943:Ted_DEV_ORA)_MBits-Transmitted/sec" => "float"
+            "Network-Port(vSwitch7:150994948:1087943:Ted_DEV_ORA)_MBits-Received/sec" => "float"
+            "Network-Port(vSwitch8:167772162:vmnic3)_MBits-Transmitted/sec" => "float"
+            "Network-Port(vSwitch8:167772162:vmnic3)_MBits-Received/sec" => "float"
+            "Network-Port(vSwitch8:167772164:36139:Krein)_MBits-Transmitted/sec" => "float"
+            "Network-Port(vSwitch8:167772164:36139:Krein)_MBits-Received/sec" => "float"
+            "Network-Port(vSwitch8:167772165:36139:Krein)_MBits-Transmitted/sec" => "float"
+            "Network-Port(vSwitch8:167772165:36139:Krein)_MBits-Received/sec" => "float"
+            "Network-Port(vSwitch8:167772168:1087943:Ted_DEV_ORA)_MBits-Transmitted/sec" => "float"
+            "Network-Port(vSwitch8:167772168:1087943:Ted_DEV_ORA)_MBits-Received/sec" => "float"
+            "Network-Port(vSwitch8:167772169:1087943:Ted_DEV_ORA)_MBits-Transmitted/sec" => "float"
+            "Network-Port(vSwitch8:167772169:1087943:Ted_DEV_ORA)_MBits-Received/sec" => "float"}
+    }
+    date {
+        locale => "en"
+        timezone => "Asia/Hong_Kong"
+        match => [ "_timestamp", "MM/dd/yyyy HH:mm:ss" ]
+        target => ["timestamp"]
+        remove_field => ["_timestamp"]
+    }
+}
+
+output{
+    elasticsearch
+    {
+       hosts => ["localhost:9200"]
+       codec => "json"
+       index => "esxtop"
+    }
+}
