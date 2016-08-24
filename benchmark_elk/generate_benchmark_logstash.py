@@ -10,7 +10,7 @@ PARSER = argparse.ArgumentParser(description='esxtop csv file parser')
 PARSER.add_argument("--path", action="store", default="none", help="Specify benchmark data path")
 ARGS_LIST = PARSER.parse_args()
 
-benchmark_data_path = ARGS_LIST.path
+benchmark_data_path = ARGS_LIST.path.strip("\n")
 if benchmark_data_path[len(benchmark_data_path)-1] == "/":
     benchmark_data_path = benchmark_data_path[0:len(benchmark_data_path)-1]
 
@@ -19,7 +19,7 @@ f_template = open(EXECUTE_PATH + "benchmark_logstash.template", "r")
 f_logstash = open(EXECUTE_PATH + "benchmark.logstash", "a")
 for line in f_template.readlines():
     if line.find("path =>") != -1:
-        line = line.replace("/home/onrack/_src/benchmark/20160725-001442",
+        line = line.replace("/home/onrack/_src/benchmark/20160725-001442/freestyle/data",
                             benchmark_data_path)
     f_logstash.write(line)
 f_logstash.close()
