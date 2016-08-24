@@ -25,7 +25,6 @@
   vars:
     script_path: "{{inventory_dir}}/benchmark_elk"
     benchmark_tool_path: "{{inventory_dir}}/RackHD/test/"
-    benchmark_log_path: "{{inventory_dir}}/RackHD/test/benchmark"
   tasks:
     - name: stop benchmark 
       shell: virtualenv .venv; source .venv/bin/activate;pip install -r requirements.txt;python benchmark.py stop
@@ -35,5 +34,39 @@
       ignore_errors: yes
       become: False 
     - name: get latest benchmark log file
+      shell: virtualenv .venv; source .venv/bin/activate;pip install -r requirements.txt;python benchmark.py --getdir 
+      register: benchmark_log_path
+      args:
+          chdir: "{{benchmark_tool_path}}"
+          executable: /bin/bash
+      become: False 
     - name: generate benchmark logstash file
-        command: "{{script_path}}/generate_benchmark_logstash.py --path {{benchmark_log_path}}" 
+      command: "{{script_path}}/generate_benchmark_logstash.py --path {{benchmark_log_path}}/data" 
+    - name: unpack rackhd log from .tar packages
+      shell: tar -xvf upstart.tar; rm upstart.tar
+      register: unpack_flag
+      args:
+          chdir: "{{inventory_dir}}"
+      until: unpack_flag.stdout.find("No such file or directory") == -1
+      retries: 5
+      delay: 1 
+    - name: unpack rackhd log from .gz packages
+      shell: gzip -d *.gz
+      args:
+          chdir: "{{inventory_dir}}/upstart"
+
+
+- hosts: rackhd
+  vars:
+    log_path: "/var/log"
+  tasks:
+    - name: pack RackHD log files
+      shell: tar -cvf upstart.tar upstart/ 
+      args:
+          chdir: "{{log_path}}"
+      become: True
+    - name: copy RackHD log files
+      fetch: src={{log_path}}/upstart.tar
+             dest={{inventory_dir}}
+
+

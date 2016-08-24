@@ -29,3 +29,10 @@
       ignore_errors: yes
       become: False 
 
+- hosts: rackhd
+  tasks:
+      - name: clear old logs
+        shell: rm /var/log/upstart/*
+        ignore_errors: yes
+        become: True
+
