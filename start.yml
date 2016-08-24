@@ -3,7 +3,7 @@
   vars:
     delay: 4
     count: 43200
-    script_path: "/esxtop/parser"
+    script_path: "/esxtop"
     logstash_path: "{{inventory_dir}}/elk/logstash/rackhd_esxtop.logstash"
     kibana_path: "{{inventory_dir}}/elk/kibana/rackhd_esxtop_kibana.json"
     csv_path: "/tmp/rackhd_esxtop.csv"
