@@ -9,18 +9,21 @@ localhost   ansible_connection=local
 
 [test_machine:vars]
 ansible_sudo_pass=onrack
+log=Tue
 
 [rackhd:vars]
 ansible_connection=ssh
 ansible_ssh_user=onrack
 ansible_ssh_pass=onrack
 ansible_sudo_pass=onrack
+benchmark=True
 
 [esxi_server:vars]
 ansible_connection=ssh
 ansible_ssh_user=root
 ansible_ssh_pass=1111111
 ansible_sudo_pass=1111111
+esxtop=True
 
 [elk:children]
 test_machine

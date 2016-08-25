@@ -11,15 +11,25 @@
       args:
           chdir: "{{script_path}}"
       ignore_errors: yes
+      when: esxtop
     - name: copy back esxtop  file
-      fetch: src={{script_path}}/rackhd_esxtop.logstash dest={{logstash_path}} flat=yes 
+      fetch: src={{script_path}}/rackhd_esxtop.logstash 
+          dest={{logstash_path}} 
+          flat=yes 
       ignore_errors: yes
+      when: esxtop
     - name: copy back esxtop kibana configure file
-      fetch: src={{script_path}}/rackhd_esxtop_kibana.json dest={{kibana_path}} flat=yes
+      fetch: src={{script_path}}/rackhd_esxtop_kibana.json 
+          dest={{kibana_path}} 
+          flat=yes
       ignore_errors: yes
+      when: esxtop
     - name: copy back esxtop csv file
-      fetch: src={{script_path}}/rackhd_esxtop.csv dest=/tmp/rackhd_esxtop.csv flat=yes
+      fetch: src={{script_path}}/rackhd_esxtop.csv 
+          dest=/tmp/rackhd_esxtop.csv 
+          flat=yes
       ignore_errors: yes
+      when: esxtop
 
 - hosts: test_machine
   vars:
@@ -33,6 +43,7 @@
           executable: /bin/bash
       ignore_errors: yes
       become: False 
+      when: benchmark 
     - name: get latest benchmark log file
       shell: virtualenv .venv > /dev/null; source .venv/bin/activate > /dev/null;python benchmark.py --getdir 
       register: benchmark_log_path
@@ -40,8 +51,10 @@
           chdir: "{{benchmark_tool_path}}"
           executable: /bin/bash
       become: False 
+      when: benchmark 
     - name: generate benchmark logstash file
       command: "{{script_path}}/generate_benchmark_logstash.py --path {{benchmark_log_path.stdout}}/data" 
+      when: benchmark 
 
 - hosts: rackhd
   vars:
@@ -52,10 +65,12 @@
       args:
           chdir: "{{log_path}}"
       become: True
+      when: log 
     - name: copy RackHD log files
       fetch: src={{log_path}}/upstart.tar
              dest={{inventory_dir}}
              flat=yes
+      when: log 
 
 - hosts: test_machine
   tasks:
@@ -65,11 +80,13 @@
       args:
           chdir: "{{inventory_dir}}"
       ignore_errors: yes
+      when: log 
     - name: unpack rackhd log from .gz packages
       shell: gzip -d *.gz
       args:
           chdir: "{{inventory_dir}}/upstart"
       ignore_errors: yes
+      when: log 
 
 
 

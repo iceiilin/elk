@@ -4,18 +4,32 @@
     delay: 4
     count: 43200
     script_path: "/esxtop"
-    logstash_path: "{{inventory_dir}}/elk/logstash/rackhd_esxtop.logstash"
-    kibana_path: "{{inventory_dir}}/elk/kibana/rackhd_esxtop_kibana.json"
-    csv_path: "/tmp/rackhd_esxtop.csv"
+    #logstash_path: "{{inventory_dir}}/elk/logstash/rackhd_esxtop.logstash"
+    #kibana_path: "{{inventory_dir}}/elk/kibana/rackhd_esxtop_kibana.json"
+    #csv_path: "/tmp/rackhd_esxtop.csv"
   tasks:
     - name: start esxtop script
       command: "{{script_path}}/rackhd_esxtop_csv_collector.py -n {{count}} -d {{delay}}"
-    - name: copy back esxtop logstash configure file
-      fetch: src={{script_path}}/rackhd_esxtop.logstash dest={{logstash_path}} flat=yes 
-    - name: copy back esxtop kibana configure file
-      fetch: src={{script_path}}/rackhd_esxtop_kibana.json dest={{kibana_path}} flat=yes
-    - name: copy back esxtop csv file
-      fetch: src={{script_path}}/rackhd_esxtop.csv dest=/tmp/rackhd_esxtop.csv flat=yes
+      register: collect_job
+      async: {{count*delay}}+10|int}}
+      poll: 0
+      when: esxtop
+    #- name: copy back esxtop logstash configure file
+    #  fetch: src={{script_path}}/rackhd_esxtop.logstash 
+    #      dest={{logstash_path}} 
+    #      flat=yes
+    #  register: result
+    #  until: result.rc == 0
+    #  retry: 5
+    #  delay: 1
+    #- name: copy back esxtop kibana configure file
+    #  fetch: src={{script_path}}/rackhd_esxtop_kibana.json 
+    #      dest={{kibana_path}} 
+    #      flat=yes
+    #- name: copy back esxtop csv file
+    #  fetch: src={{script_path}}/rackhd_esxtop.csv 
+    #      dest=/tmp/rackhd_esxtop.csv 
+    #      flat=yes
 
 - hosts: test_machine
   vars:
@@ -27,7 +41,8 @@
           chdir: "{{benchmark_path}}"
           executable: /bin/bash
       ignore_errors: yes
-      become: False 
+      become: False
+      when: benchmark
 
 - hosts: rackhd
   tasks:
@@ -35,4 +50,5 @@
         shell: rm /var/log/upstart/*
         ignore_errors: yes
         become: True
+        when: log
 
