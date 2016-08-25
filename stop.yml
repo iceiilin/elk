@@ -1,92 +1,159 @@
 ---
 - hosts: esxi_server
+
   vars:
-    script_path: "/esxtop"
-    logstash_path: "{{inventory_dir}}/elk/logstash/rackhd_esxtop.logstash"
-    kibana_path: "{{inventory_dir}}/elk/kibana/rackhd_esxtop_kibana.json"
-    csv_path: "/tmp/rackhd_esxtop.csv"
+    script_path:
+        "/esxtop"
+    logstash_path:
+        "{{inventory_dir}}/elk/logstash/config/rackhd_esxtop.logstash"
+    kibana_path:
+        "{{inventory_dir}}/elk/kibana/rackhd_esxtop_kibana.json"
+    csv_path:
+        "{{inventory_dir}}/logs/rackhd_esxtop.csv"
+
   tasks:
+
     - name: stop esxtop script
       command: ./kill_pid_esxi.sh esxtop
       args:
           chdir: "{{script_path}}"
       ignore_errors: yes
       when: esxtop
+
     - name: copy back esxtop  file
-      fetch: src={{script_path}}/rackhd_esxtop.logstash 
-          dest={{logstash_path}} 
-          flat=yes 
-      ignore_errors: yes
-      when: esxtop
-    - name: copy back esxtop kibana configure file
-      fetch: src={{script_path}}/rackhd_esxtop_kibana.json 
-          dest={{kibana_path}} 
-          flat=yes
-      ignore_errors: yes
-      when: esxtop
-    - name: copy back esxtop csv file
-      fetch: src={{script_path}}/rackhd_esxtop.csv 
-          dest=/tmp/rackhd_esxtop.csv 
+      fetch:
+          src={{script_path}}/rackhd_esxtop.logstash
+          dest={{logstash_path}}
           flat=yes
       ignore_errors: yes
       when: esxtop
 
-- hosts: test_machine
+    - name: copy back esxtop kibana configure file
+      fetch:
+          src={{script_path}}/rackhd_esxtop_kibana.json
+          dest={{kibana_path}}
+          flat=yes
+      ignore_errors: yes
+      when: esxtop
+
+    - name: copy back esxtop csv file
+      fetch:
+          src={{script_path}}/rackhd_esxtop.csv
+          dest=/tmp/rackhd_esxtop.csv
+          flat=yes
+      ignore_errors: yes
+      when: esxtop
+
+
+- hosts: rackhd
+
   vars:
-    script_path: "{{inventory_dir}}/benchmark_elk"
-    benchmark_tool_path: "{{inventory_dir}}/RackHD/test/"
+    remote_log_path: "/var/log/"
+    local_log_path: "{{inventory_dir}}/logs/"
+
   tasks:
-    - name: stop benchmark 
-      shell: virtualenv .venv; source .venv/bin/activate;python benchmark.py --stop
+
+    - name: pack RackHD log files
+      shell: tar -cvf upstart.tar upstart/
+      args:
+          chdir: "{{remote_log_path}}"
+      become: True
+      when: log
+
+    - name: copy RackHD log files
+      fetch:
+          src={{remote_log_path}}/upstart.tar
+          dest={{local_log_path}}
+          flat=yes
+      when: log
+
+- hosts: test_machine
+
+  vars:
+    benchmark_script_path: "{{inventory_dir}}/benchmark_elk/"
+    benchmark_tool_path: "{{inventory_dir}}/RackHD/test/"
+    log_path: "{{inventory_dir}}/"
+    logstash_config_path: "{{inventory_dir}}/elk/logstash/config/"
+  tasks:
+
+    ## Prepare benchmark logs and logstash configure file
+    - name: stop benchmark
+      shell:
+          virtualenv .venv; source .venv/bin/activate;python benchmark.py --stop
       args:
           chdir: "{{benchmark_tool_path}}"
           executable: /bin/bash
       ignore_errors: yes
-      become: False 
-      when: benchmark 
+      become: False
+      when: benchmark
+
     - name: get latest benchmark log file
-      shell: virtualenv .venv > /dev/null; source .venv/bin/activate > /dev/null;python benchmark.py --getdir 
+      shell:
+          virtualenv .venv > /dev/null; source .venv/bin/activate > /dev/null;python benchmark.py --getdir
       register: benchmark_log_path
       args:
           chdir: "{{benchmark_tool_path}}"
           executable: /bin/bash
-      become: False 
-      when: benchmark 
+      become: False
+      when: benchmark
+
     - name: generate benchmark logstash file
-      command: "{{script_path}}/generate_benchmark_logstash.py --path {{benchmark_log_path.stdout}}/data" 
-      when: benchmark 
+      command: "{{benchmark_script_path}}generate_benchmark_logstash.py --path {{benchmark_log_path.stdout}}/data"
+      when: benchmark
 
-- hosts: rackhd
-  vars:
-    log_path: "/var/log"
-  tasks:
-    - name: pack RackHD log files
-      shell: tar -cvf upstart.tar upstart/ 
-      args:
-          chdir: "{{log_path}}"
-      become: True
-      when: log 
-    - name: copy RackHD log files
-      fetch: src={{log_path}}/upstart.tar
-             dest={{inventory_dir}}
-             flat=yes
-      when: log 
+    - name: copy benchmark logstash file to correct place
+      copy:
+          src={{benchmark_script_path}}benchmark.logstash
+          dest={{logstash_config_path}}benchmark.logstash
+          flat=yes
+      when: benchmark
 
-- hosts: test_machine
-  tasks:
+    ## Prepare RackHD logs
     - name: unpack rackhd log from .tar packages
       shell: tar -xvf upstart.tar; rm upstart.tar
       register: unpack_flag
       args:
-          chdir: "{{inventory_dir}}"
+          chdir: "{{inventory_dir}}/logs"
       ignore_errors: yes
-      when: log 
+      when: log
+
     - name: unpack rackhd log from .gz packages
       shell: gzip -d *.gz
       args:
-          chdir: "{{inventory_dir}}/upstart"
+          chdir: "{{inventory_dir}}/logs/upstart"
       ignore_errors: yes
-      when: log 
+      when: log
 
+    ## Initiate ELK
+    - name: initiate kibana
+      command: ./bin/kibanai &
+      args:
+          chdir: "{{inventory_dir}}/elk/kibana"
+      async: 1000
+      poller: 0
 
+    - name: initiate elasticsearh
+      command: ./bin/elasticsearh &
+      args:
+          chdir: "{{inventory_dir}}/elk/elasticsearh"
+
+    - name: initiate logstash
+        command: ./bin/logstash -f config/ &
+      args:
+          chdir: "{{inventory_dir}}/elk/logstash"
+
+    ## Configure kibana
+    - name: Configure benchmark kibana
+      command:
+          curl -XPUT  http://localhost:9200/kibana-int/dashboard/rackhd_benchmark -T rackhd_benchmark_kibana.json 
+      args:
+          chdir: "{{benchmark_script_path}}"
+      ignore_errors: yes
+
+    - name: Configure esxtop kibana
+      command:
+          curl -XPUT  http://localhost:9200/kibana-int/dashboard/rack_hd_normal_dashboard -T rackhd_esxtop_kibana.json
+      args:
+          chdir: "{{inventory_dir}}/esxtop_elk"
+      ignore_errors: yes
 
