@@ -126,19 +126,19 @@
 
     ## Initiate ELK
     - name: initiate kibana
-      command: ./bin/kibanai &
+      command: nohup sh -c "./bin/kibana" 2>/dev/null &
       args:
           chdir: "{{inventory_dir}}/elk/kibana"
       async: 1000
       poller: 0
 
     - name: initiate elasticsearh
-      command: ./bin/elasticsearh &
+      command: nohup sh -c "./bin/elasticsearch" 2>/dev/null &
       args:
-          chdir: "{{inventory_dir}}/elk/elasticsearh"
+          chdir: "{{inventory_dir}}/elk/elasticsearch"
 
     - name: initiate logstash
-        command: ./bin/logstash -f config/ &
+      command: nohup sh -c "./bin/logstash -f config/" 2>/dev/null &
       args:
           chdir: "{{inventory_dir}}/elk/logstash"
 
