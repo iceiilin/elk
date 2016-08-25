@@ -31,7 +31,7 @@ ESXTOP_FLAG = ARGS_LIST.esxtop
 START_FLAG = ARGS_LIST.start
 STOP_FLAG = ARGS_LIST.stop
 CONFIG_FILE = ARGS_LIST.config
-DURATION = ARGS_LIST.duraion
+DURATION = ARGS_LIST.duration
 DELAY = ARGS_LIST.delay
 
 if __name__ == "__main__":
@@ -43,14 +43,16 @@ if __name__ == "__main__":
         arg_override["delay"] = DELAY
         arg_override["count"] = count
         setup_cmd = "ansible-playbook -i " + CONFIG_FILE + \
-            " setup_env.yml --extra-vars " + json.dumps(arg_override)
+            " setup_env.yml --extra-vars '" + json.dumps(arg_override) + "'"
+        print setup_cmd
         subprocess.call(setup_cmd, shell=True)
         start_cmd = "ansible-playbook -i " + CONFIG_FILE + \
-            " start.yml --extra-vars " + json.dumps(arg_override)
+            " start.yml --extra-vars '" + json.dumps(arg_override) + "'"
+        print start_cmd
         subprocess.call(start_cmd, shell=True)
     elif STOP_FLAG:
         stop_cmd = "ansible-playbook -i " + CONFIG_FILE + \
-            " start.yml --extra-vars " + json.dumps(arg_override)
+            " start.yml --extra-vars '" + json.dumps(arg_override) + "'"
         subprocess.call(stop_cmd, shell=True)
     else:
         print "Error: not taks is started"

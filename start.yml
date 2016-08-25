@@ -4,39 +4,22 @@
     delay: 4
     count: 43200
     script_path: "/esxtop"
-    #logstash_path: "{{inventory_dir}}/elk/logstash/rackhd_esxtop.logstash"
-    #kibana_path: "{{inventory_dir}}/elk/kibana/rackhd_esxtop_kibana.json"
-    #csv_path: "/tmp/rackhd_esxtop.csv"
   tasks:
     - name: start esxtop script
-      command: "{{script_path}}/rackhd_esxtop_csv_collector.py -n {{count}} -d {{delay}}"
+      command: 
+          "{{script_path}}/rackhd_esxtop_csv_collector.py -n {{count}} -d {{delay}}"
       register: collect_job
       async: "{{count*delay+10|int}}"
       poll: 0
       when: esxtop
-    #- name: copy back esxtop logstash configure file
-    #  fetch: src={{script_path}}/rackhd_esxtop.logstash 
-    #      dest={{logstash_path}} 
-    #      flat=yes
-    #  register: result
-    #  until: result.rc == 0
-    #  retry: 5
-    #  delay: 1
-    #- name: copy back esxtop kibana configure file
-    #  fetch: src={{script_path}}/rackhd_esxtop_kibana.json 
-    #      dest={{kibana_path}} 
-    #      flat=yes
-    #- name: copy back esxtop csv file
-    #  fetch: src={{script_path}}/rackhd_esxtop.csv 
-    #      dest=/tmp/rackhd_esxtop.csv 
-    #      flat=yes
 
 - hosts: test_machine
   vars:
     benchmark_path: "{{inventory_dir}}/RackHD/test/"
   tasks:
     - name: start benchmark 
-      shell: virtualenv .venv; source .venv/bin/activate;pip install -r requirements.txt;python benchmark.py start
+      shell: 
+          virtualenv .venv; source .venv/bin/activate;pip install -r requirements.txt;python benchmark.py start
       args:
           chdir: "{{benchmark_path}}"
           executable: /bin/bash
