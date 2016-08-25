@@ -6,7 +6,7 @@ import os
 import argparse
 
 # pylint: disable=line-too-long, anomalous-backslash-in-string, too-many-locals
-PARSER = argparse.ArgumentParser(description='esxtop csv file parser')
+PARSER = argparse.ArgumentParser(description='benchmark logstash configure file generator')
 PARSER.add_argument("--path", action="store", default="none", help="Specify benchmark data path")
 ARGS_LIST = PARSER.parse_args()
 
