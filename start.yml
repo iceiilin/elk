@@ -11,7 +11,7 @@
     - name: start esxtop script
       command: "{{script_path}}/rackhd_esxtop_csv_collector.py -n {{count}} -d {{delay}}"
       register: collect_job
-      async: {{count*delay}}+10|int}}
+      async: "{{count*delay+10|int}}"
       poll: 0
       when: esxtop
     #- name: copy back esxtop logstash configure file
