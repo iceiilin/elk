@@ -219,21 +219,24 @@ def create_logstash(heading_list, convert_list, config_file_name):
         '        start_position => "beginning"\n' \
         '        ignore_older => 0\n' \
         '        sincedb_path => "/dev/null"\n' \
+        '        type => esxtop_csv \n' \
         '    }\n' \
         '}\n' \
         '\n' \
         'filter {\n' \
-        '    csv {\n' \
-        '        columns => ' + headings + '\n' \
-        '        separator => ","\n' \
-        '        convert => {\n            ' + converting_list + '}\n' \
-        '    }\n' \
-        '    date {\n' \
-        '        locale => "en"\n' \
-        '        timezone => "Asia/Hong_Kong"\n' \
-        '        match => [ "_timestamp", "MM/dd/yyyy HH:mm:ss" ]\n' \
-        '        target => ["timestamp"]\n' \
-        '        remove_field => ["_timestamp"]\n' \
+        '    if type == esxtop_csv {'\
+        '        csv {\n' \
+        '            columns => ' + headings + '\n' \
+        '            separator => ","\n' \
+        '            convert => {\n            ' + converting_list + '}\n' \
+        '        }\n' \
+        '        date {\n' \
+        '            locale => "en"\n' \
+        '            timezone => "Asia/Hong_Kong"\n' \
+        '            match => [ "_timestamp", "MM/dd/yyyy HH:mm:ss" ]\n' \
+        '            target => ["timestamp"]\n' \
+        '            remove_field => ["_timestamp"]\n' \
+        '        }\n' \
         '    }\n' \
         '}\n' \
         '\n' \
