@@ -1,21 +1,19 @@
-ELK Configuration for RackHD
+This repo is designed to collect RackHD host, processes performance data and RackHD logs for @Scale test.
+All data will be stored in Elasticsearch and can be displayed in Kibana
+You can use scripts in this repo to collect RackHD services performance data, ESXi host performance data and RackHD logs.
+Data will be stored in elasticsearch. Performance data can be displayed in Kibana with pre-set dashboard.
 
-This repo is to store RackHD ELK configure files
-
-./benchmark_elk includes logstash configure and kibana configure files
-
-./esxtop_elk contains all documents required for ESXi performance data collection
-To collect ESXi performance data and display in kibana:
-    run ./rackhd_esxtop_csv_collector.py on ESXi host
-rackhd_esxtop60rc, rackhd_esxtop_template.json and configure_file_generator.py are required to run this script.
-    rackhd_esxtop60rc: esxtop configure file
-    rackhd_esxtop_template.json: kibana configure file template, this is required to generate new kibana configure file
-    configure_file_generator.py: provide libraries for rackhd_esxtop_csv_collector.py
-
-3 files will be generated after above operation:
-    rackhd_esxtop.csv: store CPU, memory, network for all virtuals machines
-    rackhd_esxtop.logstash: required logstash file to import rackhd_esxtop.csv to ELK
-    rackhd_esxtop_kibana.json: required kibana configure file to display collected performance data in ELK
-Anther file will be generated is:
-    rackhd_esxtop.entity: this file shows VMs and NICs that there performance data are collected
-
+Here are steps to use this tool:
+1. Configure username, password and IP address for RackHD OVA, ESXi host deployed with RackHD OVA and test server (localhost).
+2. Run rackhd_elk.py to collect data. Below are some command examples:
+    a. ./rackhd_elk.py --start
+        Start RackHD ELK data collection
+    b. ./rackhd_elk.py --stop
+        Stop RackHD ELK data collection and configure ELK
+    c. ./rackhd_elk.py --start -d 3600 -a
+        Run test for one hour and automatically complete data colleciton and display in Kibana
+    d. ./rackhd_elk.py --kill --clear --start 
+        Clear elasticsearch database and kill ELK processes before start test
+3. Open browser and enter <localhost_ip>:5601 to access kibana.
+    a. 3 indexes will be created: rackhd_benchmark, esxtop, rackhd_log. 
+    b. Two dashboards are configured for RackHD ESXi host and benchmark performance to display CPU, network and memory performance. 
