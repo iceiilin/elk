@@ -21,8 +21,8 @@ PARSER.add_argument("--start", action="store_true", default=False,
                     help="Start operation flag")
 PARSER.add_argument("--stop", action="store_true", default=False,
                     help="Stop operation flag")
-PARSER.add_argument("-d", "--duraion", action="store", default=3600, type=int, dest="duration",
-                    help="Specify esxtop duration in seconds, default duratio is 3600 seconds")
+PARSER.add_argument("-d", "--duraion", action="store", default=36000, type=int, dest="duration",
+                    help="Specify esxtop duration in seconds, default duratio is 36000 seconds")
 PARSER.add_argument("-D", "--delay", action="store", default=4, type=int, dest="delay",
                     help="Specify esxtop sampling interval, default 4 seconds")
 PARSER.add_argument("-k", "--kill", action="store_true", default=False, dest="kill",
