@@ -84,7 +84,7 @@ output
     if "static-logs" == [type] {
         elasticsearch
         {
-            index => "onrack-%{process}"
+            index => "rackhd-log"
             codec => "json"
         }
     }
