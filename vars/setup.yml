@@ -1,0 +1,19 @@
+benchmark_config:
+    - { key: "RACKHD_HOST ",           value: '{{ hostvars.localhost.groups.rackhd[0] }}' }
+    - { key: "RACKHD_PORT ",           value: '{{ rackhd_api_port }}' }
+    - { key: "RACKHD_SSH_USER ",       value: '{{ rackhd_ssh_user }}' }
+    - { key: "RACKHD_SSH_PASSWORD ",   value: '{{ rackhd_ssh_pwd }}' }
+    - { key: "RACKHD_SSH_PORT ",       value: '{{ rackhd_ssh_port }}' }
+
+benchmark_localhost:
+    - { key: "LOCAL_USER",             value: '{{ localhost_sudo_user }}' }
+    - { key: "LOCAL_PWD",              value: '{{ localhost_sudo_pwd }}' }
+
+#elk_install_info:
+    #- { name: "logstash",   url: "https://download.elastic.co/logstash/logstash/logstash-2.3.4.tar.gz" }
+    #- { name: "elasticsearch",   url: "https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/2.3.5/elasticsearch-2.3.5.tar.gz" }
+    #- { name: "kibana",   url: "https://download.elastic.co/kibana/kibana/kibana-4.5.4-linux-x64.tar.gz" }
+elk_install_info:
+    - { name: "logstash",   url: "http://10.62.59.209/static/uploads/elk_packages/logstash-2.3.4.tar.gz" }
+    - { name: "elasticsearch",   url: "http://10.62.59.209/static/uploads/elk_packages/elasticsearch-2.3.5.tar.gz" }
+    - { name: "kibana",   url: "http://10.62.59.209/static/uploads/elk_packages/kibana-4.5.4-linux-x64.tar.gz" }

@@ -44,6 +44,14 @@
       ignore_errors: yes
       when: esxtop
 
+    - name: copy esxtop csv to /tmp
+      fetch:
+          src={{script_path}}/rackhd_esxtop.csv
+          dest=/tmp/rackhd_esxtop.csv
+          flat=yes
+      ignore_errors: yes
+      when: esxtop
+
 
 - hosts: rackhd
 
@@ -74,6 +82,9 @@
     benchmark_tool_path: "{{inventory_dir}}/RackHD/test/"
     log_path: "{{inventory_dir}}/"
     logstash_config_path: "{{inventory_dir}}/elk/logstash/config/"
+    kibana_config_path: "{{inventory_dir}}/elk/kibana/"
+    benchmark_kibana_json: "{{ lookup('file', 'elk/kibana/rackhd_benchmark_kibana.json') | from_json}}" 
+    esxtop_kibana_json: "{{ lookup('file', 'elk/kibana/rackhd_esxtop_kibana.json') | from_json}}" 
   tasks:
 
     ## Prepare benchmark logs and logstash configure file
@@ -96,15 +107,22 @@
           executable: /bin/bash
       become: False
       when: benchmark
-
+    
     - name: generate benchmark logstash file
       command: "{{benchmark_script_path}}generate_benchmark_logstash.py --path {{benchmark_log_path.stdout}}/data"
       when: benchmark
 
     - name: copy benchmark logstash file to correct place
-      copy:
+      fetch:
           src={{benchmark_script_path}}benchmark.logstash
           dest={{logstash_config_path}}benchmark.logstash
+          flat=yes
+      when: benchmark
+
+    - name: copy benchmark kibana file to correct place
+      fetch:
+          src={{benchmark_script_path}}rackhd_benchmark_kibana.json
+          dest={{kibana_config_path}}rackhd_benchmark_kibana.json
           flat=yes
       when: benchmark
 
@@ -126,34 +144,35 @@
 
     ## Initiate ELK
     - name: initiate kibana
-      command: nohup sh -c "./bin/kibana" 2>/dev/null &
+      #shell: ./bin/kibana -Q &
+      shell: ./bin/kibana >kibana.log &
       args:
           chdir: "{{inventory_dir}}/elk/kibana"
-      async: 1000
-      poller: 0
 
     - name: initiate elasticsearh
-      command: nohup sh -c "./bin/elasticsearch" 2>/dev/null &
+      #shell: ./bin/elasticsearch -d
+      shell: ./bin/elasticsearch >elasticsearch.log &
       args:
           chdir: "{{inventory_dir}}/elk/elasticsearch"
 
     - name: initiate logstash
-      command: nohup sh -c "./bin/logstash -f config/" 2>/dev/null &
+      #shell: ./bin/logstash -f config/ --quiet 2>>/dev/null &
+      shell: ./bin/logstash -f config/ > logstash.log &
+      register: logstash_log
+      become: yes 
       args:
           chdir: "{{inventory_dir}}/elk/logstash"
-
+    
+    - pause: seconds=15
     ## Configure kibana
-    - name: Configure benchmark kibana
-      command:
-          curl -XPUT  http://localhost:9200/kibana-int/dashboard/rackhd_benchmark -T rackhd_benchmark_kibana.json 
+    - name: Configure kibana
+      command: python set_kibana_config.py
+      register: result
       args:
-          chdir: "{{benchmark_script_path}}"
+          chdir: "{{inventory_dir}}"
       ignore_errors: yes
-
-    - name: Configure esxtop kibana
-      command:
-          curl -XPUT  http://localhost:9200/kibana-int/dashboard/rack_hd_normal_dashboard -T rackhd_esxtop_kibana.json
-      args:
-          chdir: "{{inventory_dir}}/esxtop_elk"
-      ignore_errors: yes
+      become: yes
+      until: result.rc == 0
+      retries: 5
+      delay: 15
 

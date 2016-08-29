@@ -16,7 +16,7 @@ if benchmark_data_path[len(benchmark_data_path)-1] == "/":
 
 EXECUTE_PATH = os.path.split(os.path.realpath(__file__))[0] + "/"
 f_template = open(EXECUTE_PATH + "benchmark_logstash.template", "r")
-f_logstash = open(EXECUTE_PATH + "benchmark.logstash", "a")
+f_logstash = open(EXECUTE_PATH + "benchmark.logstash", "w")
 for line in f_template.readlines():
     if line.find("path =>") != -1:
         line = line.replace("/home/onrack/_src/benchmark/20160725-001442/freestyle/data",

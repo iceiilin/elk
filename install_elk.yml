@@ -1,0 +1,22 @@
+---
+- set_fact: pkg="{{ item }}"
+
+- name: Check package {{ pkg.name }}
+  shell: find {{ pkg.name }} -maxdepth 0
+  args:
+    chdir: "{{ inventory_dir }}/elk"
+  ignore_errors: yes
+  register: ret
+
+- name: Get {{ pkg.name }} package if there isn't one
+  get_url: url={{ pkg.url  }}
+           dest=/tmp/{{ pkg.name }}.tar.gz
+  when: ret.rc != 0
+
+- name: Untar {{ pkg.name }} package
+  shell: tar xvf /tmp/{{ pkg.name }}.tar.gz -C "{{ inventory_dir }}/elk"
+  when: ret.rc != 0
+
+- name: Rename {{ pkg.name }} package
+  shell: mv -f "{{ inventory_dir }}/elk/{{ pkg.name }}"* "{{ inventory_dir }}/elk/{{ pkg.name }}"
+  when: ret.rc != 0

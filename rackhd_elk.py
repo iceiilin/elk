@@ -8,21 +8,26 @@ import argparse
 import subprocess
 PARSER = argparse.ArgumentParser(description='RackHD ELK log and performance data collect tool')
 PARSER.add_argument("-b", "--benchmark", action="store_false", default=True, dest="benchmark",
-                    help="Enable benchmark data collecting")
+                    help="Disable benchmark data collecting")
 PARSER.add_argument("-l", "--log", action="store_false", default=True, dest="log",
-                    help="Enable RackHD log data collecting")
+                    help="Disable RackHD log data collecting")
 PARSER.add_argument("-e", "--esxtop", action="store_false", default=True, dest="esxtop",
-                    help="Enable esxi host performance data collecting")
+                    help="Disable esxi host performance data collecting")
 PARSER.add_argument("-c", "--config", action="store", default="hosts", dest="config",
-                    help="Specify configure file, default using hosts in executing folder")
+                    help="Specify ansible inventory file, default using hosts in executing folder")
 PARSER.add_argument("--start", action="store_true", default=False,
                     help="Start operation flag")
 PARSER.add_argument("--stop", action="store_true", default=False,
                     help="Stop operation flag")
 PARSER.add_argument("-d", "--duraion", action="store", default=3600, type=int, dest="duration",
-                    help="Specify test duration in seconds, default duratio is 3600 seconds")
+                    help="Specify esxtop duration in seconds, default duratio is 3600 seconds")
 PARSER.add_argument("-D", "--delay", action="store", default=4, type=int, dest="delay",
                     help="Specify esxtop sampling interval, default 4 seconds")
+PARSER.add_argument("-k", "--kill", action="store_true", default=False, dest="kill",
+                    help="Flag to kill ELK")
+PARSER.add_argument("-C", "--clear", action="store_true", default=False, dest="clear",
+                    help="Flag to clear elasticsearch data")
+
 
 ARGS_LIST = PARSER.parse_args()
 BENCHMARK_FLAG = ARGS_LIST.benchmark
@@ -33,11 +38,17 @@ STOP_FLAG = ARGS_LIST.stop
 CONFIG_FILE = ARGS_LIST.config
 DURATION = ARGS_LIST.duration
 DELAY = ARGS_LIST.delay
+KILL = ARGS_LIST.kill
+CLEAR = ARGS_LIST.clear
 
 if __name__ == "__main__":
     arg_override = {"benchmark": BENCHMARK_FLAG,
                     "log": LOG_FLAG,
                     "esxtop": ESXTOP_FLAG}
+    if CLEAR:
+        subprocess.call("curl -XDELETE localhost:9200/_all | python -mjson.tool", shell=True)
+    if KILL:
+        subprocess.call("./kill_pid_linux.sh cli elasticsearch logstash", shell=True)
     if START_FLAG:
         count = DURATION / DELAY
         arg_override["delay"] = DELAY
@@ -52,8 +63,8 @@ if __name__ == "__main__":
         subprocess.call(start_cmd, shell=True)
     elif STOP_FLAG:
         stop_cmd = "ansible-playbook -i " + CONFIG_FILE + \
-            " start.yml --extra-vars '" + json.dumps(arg_override) + "'"
+            " stop.yml --extra-vars '" + json.dumps(arg_override) + "'"
         subprocess.call(stop_cmd, shell=True)
     else:
-        print "Error: not taks is started"
+        print "Error: no task is started"
         print "Please specify if you want to start or stop the job"

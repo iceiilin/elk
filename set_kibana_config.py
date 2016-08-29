@@ -4,11 +4,24 @@ This script is used to auto-generate kibana configure file for esxtop performanc
 """
 import os
 import json
+import re
 import subprocess
 
 # pylint: disable=invalid-name
 
 EXECUTE_PATH = os.path.split(os.path.realpath(__file__))[0] + "/elk/kibana/"
+
+index_list = ["rackhd_benchmark", "esxtop", "onrack-*"]
+for index in index_list:
+    cmd = "curl -XPUT localhost:9200/.kibana/index-pattern/" + index \
+        + " -d '{\"title\": \"" + index + "\"}'"
+    subprocess.call(cmd, shell=True)
+cmd = "curl localhost:9200/.kibana/config/_search?q=*"
+output = subprocess.check_output(cmd, shell=True)
+match = re.compile("[\s\S]\"_id\"\:\s*\"(\d.\d.\d)\"[\s\S]", re.I).search(output)
+cmd = "curl -XPUT localhost:9200/.kibana/config/" + match.group(1) \
+    + " -d '{\"defaultIndex\": \"esxtop\"}'"
+subprocess.call(cmd, shell=True)
 kibana_files = ["rackhd_benchmark_kibana.json", "rackhd_esxtop_kibana.json"]
 for kibana_configure in kibana_files:
     #f_configure = open(EXECUTE_PATH + kibana_configure, "r")

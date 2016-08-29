@@ -1,0 +1,75 @@
+---
+- hosts: test_machine
+  vars_files:
+    - vars/setup.yml
+
+  tasks:
+    - name: Check sshpass
+      shell: which sshpass
+      ignore_errors: yes
+      register: path
+
+    - name: Install sshpass if missing
+      apt: name=sshpass state=present
+      sudo: yes
+      when: path.rc != 0
+
+    - name: Clone test repo for benchmark test
+      git: repo=https://github.com/RackHD/RackHD.git
+           dest={{ inventory_dir }}/RackHD
+           force=yes
+      when: benchmark
+
+    - name: Modify configuration in benchmark test
+      shell: sed -i "/{{ item.key }}/c\{{ item.key }} = {{ item.value }}" {{ inventory_dir }}/RackHD/test/config/config.ini
+      with_items:
+        '{{ benchmark_config }}'
+      when: benchmark
+
+    - name: Add entries in .passwd in benchmark test
+      shell: echo "{{ item.key }}=\"{{ item.value | b64encode }}\"" >> {{ inventory_dir }}/RackHD/test/.passwd
+      with_items:
+        '{{ benchmark_localhost }}'
+      when: benchmark
+
+    - name: Install openjdk for ELK
+      apt: name=openjdk-7-jdk state=present
+      sudo: yes
+
+    - name: Create elk directory
+      file: path={{ inventory_dir }}/elk state=directory
+      ignore_errors: yes
+
+    - include: install_elk.yml
+      with_items:
+        '{{ elk_install_info }}'
+
+    - name: Create config directory in logstash
+      file: path={{ inventory_dir }}/elk/logstash/config state=directory
+      ignore_errors: yes
+
+    - name: generate rackhd log logstash file
+      command: "files/generate_log_logstash.py --path {{ inventory_dir }}/logs/upstart"
+      when: log
+
+
+    - name: copy logstash file for rackhd logs
+      fetch:
+          src=files/log.logstash
+          dest={{ inventory_dir }}/elk/logstash/config/
+          flat=yes
+      ignore_errors: yes
+      when: log
+
+- hosts: esxi_server
+  tasks:
+    - name: Copy scripts from test machine
+      copy: src={{ inventory_dir }}/esxtop_elk/
+            dest=/esxtop
+            mode=0744
+
+#- hosts: rackhd
+  #tasks:
+    #- name: Copy scripts from test machine
+      #copy: src=/tmp/elk/esxtop_elk/parser
+            #dest=/tmp
