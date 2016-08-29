@@ -4,7 +4,7 @@
 input
 {
     beats {
-        port => 5000
+        port => 4999 
         codec => multiline {
             pattern => "^\[%{WORD}\] \[%{TIMESTAMP_ISO8601}\]"
             negate => "true"
@@ -84,7 +84,7 @@ output
     if "static-logs" == [type] {
         elasticsearch
         {
-            index => "rackhd-log"
+            index => "rackhd_log"
             codec => "json"
         }
     }

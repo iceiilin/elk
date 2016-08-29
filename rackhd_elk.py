@@ -6,6 +6,8 @@ This script is to start or stop RackHD ELK log and performance data collecting t
 import json
 import argparse
 import subprocess
+import time
+
 PARSER = argparse.ArgumentParser(description='RackHD ELK log and performance data collect tool')
 PARSER.add_argument("-b", "--benchmark", action="store_false", default=True, dest="benchmark",
                     help="Disable benchmark data collecting")
@@ -27,6 +29,8 @@ PARSER.add_argument("-k", "--kill", action="store_true", default=False, dest="ki
                     help="Flag to kill ELK")
 PARSER.add_argument("-C", "--clear", action="store_true", default=False, dest="clear",
                     help="Flag to clear elasticsearch data")
+PARSER.add_argument("-a", "--auto_stop", action="store_true", default=False, dest="auto_stop",
+                    help="Flag to clear elasticsearch data")
 
 
 ARGS_LIST = PARSER.parse_args()
@@ -40,30 +44,33 @@ DURATION = ARGS_LIST.duration
 DELAY = ARGS_LIST.delay
 KILL = ARGS_LIST.kill
 CLEAR = ARGS_LIST.clear
+AUTO_STOP = ARGS_LIST.auto_stop
 
 if __name__ == "__main__":
     arg_override = {"benchmark": BENCHMARK_FLAG,
                     "log": LOG_FLAG,
                     "esxtop": ESXTOP_FLAG}
+    stop_cmd = "ansible-playbook -i " + CONFIG_FILE + \
+        " stop.yml --extra-vars '" + json.dumps(arg_override) + "'"
     if CLEAR:
         subprocess.call("curl -XDELETE localhost:9200/_all | python -mjson.tool", shell=True)
     if KILL:
-        subprocess.call("./kill_pid_linux.sh cli elasticsearch logstash", shell=True)
+        subprocess.call("sudo ./kill_pid_linux.sh cli elasticsearch logstash", shell=True)
     if START_FLAG:
         count = DURATION / DELAY
         arg_override["delay"] = DELAY
         arg_override["count"] = count
         setup_cmd = "ansible-playbook -i " + CONFIG_FILE + \
             " setup_env.yml --extra-vars '" + json.dumps(arg_override) + "'"
-        print setup_cmd
         subprocess.call(setup_cmd, shell=True)
         start_cmd = "ansible-playbook -i " + CONFIG_FILE + \
             " start.yml --extra-vars '" + json.dumps(arg_override) + "'"
-        print start_cmd
         subprocess.call(start_cmd, shell=True)
+        if AUTO_STOP:
+            print "Sleep for {} seconds ... ".format(DURATION)
+            time.sleep(DURATION)
+            subprocess.call(stop_cmd, shell=True)
     elif STOP_FLAG:
-        stop_cmd = "ansible-playbook -i " + CONFIG_FILE + \
-            " stop.yml --extra-vars '" + json.dumps(arg_override) + "'"
         subprocess.call(stop_cmd, shell=True)
     else:
         print "Error: no task is started"

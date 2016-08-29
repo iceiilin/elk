@@ -11,7 +11,7 @@ import subprocess
 
 EXECUTE_PATH = os.path.split(os.path.realpath(__file__))[0] + "/elk/kibana/"
 
-index_list = ["rackhd_benchmark", "esxtop", "onrack-*"]
+index_list = ["rackhd_benchmark", "esxtop", "rackhd_log"]
 for index in index_list:
     cmd = "curl -XPUT localhost:9200/.kibana/index-pattern/" + index \
         + " -d '{\"title\": \"" + index + "\"}'"
@@ -20,7 +20,7 @@ cmd = "curl localhost:9200/.kibana/config/_search?q=*"
 output = subprocess.check_output(cmd, shell=True)
 match = re.compile("[\s\S]\"_id\"\:\s*\"(\d.\d.\d)\"[\s\S]", re.I).search(output)
 cmd = "curl -XPUT localhost:9200/.kibana/config/" + match.group(1) \
-    + " -d '{\"defaultIndex\": \"esxtop\"}'"
+    + " -d '{\"defaultIndex\": \"rackhd_benchmark\"}'"
 subprocess.call(cmd, shell=True)
 kibana_files = ["rackhd_benchmark_kibana.json", "rackhd_esxtop_kibana.json"]
 for kibana_configure in kibana_files:
