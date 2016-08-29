@@ -39,7 +39,7 @@
     - name: copy back esxtop csv file
       fetch:
           src={{script_path}}/rackhd_esxtop.csv
-          dest=/tmp/rackhd_esxtop.csv
+          dest={{csv_path}}
           flat=yes
       ignore_errors: yes
       when: esxtop

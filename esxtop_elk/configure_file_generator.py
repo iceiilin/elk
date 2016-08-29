@@ -224,7 +224,7 @@ def create_logstash(heading_list, convert_list, config_file_name):
         '}\n' \
         '\n' \
         'filter {\n' \
-        '    if type == esxtop_csv {'\
+        '    if [type] == "esxtop_csv" {\n'\
         '        csv {\n' \
         '            columns => ' + headings + '\n' \
         '            separator => ","\n' \
