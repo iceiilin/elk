@@ -158,9 +158,9 @@ def create_kibana(heading_list, template, configure_file):
     vis_metric_type = ["median", "avg", "max"] ## define metric type for each visualizations
     vis_titles = ["cpu_usage", "memory_usage", "physical_network_usage"] ## visualization names
     vis_pattens = [
-        re.compile("(Group-Cpu\(\d+\:[\w_-]+\)_\%-Used|Physical-Cpu\(_Total\)_\%-Core-Util-Time)", re.I),
-        re.compile("Group-Memory\(\d+\:[\w_-]+\)_(Memory-Consumed-Size|Touched)-MBytes", re.I),
-        re.compile("Network-Port\(vSwitch\d+:\d+\:vmnic\d+\)_MBits-(Transmitted|Received)\/sec", re.I)
+        re.compile(".*_(Group-Cpu\(\d+\:[\w_-]+\)_\%-Used|Physical-Cpu\(_Total\)_\%-Core-Util-Time)", re.I),
+        re.compile(".*_Group-Memory\(\d+\:[\w_-]+\)_(Memory-Consumed-Size|Touched)-MBytes", re.I),
+        re.compile(".*_Network-Port\(vSwitch\d+:\d+\:vmnic\d+\)_MBits-(Transmitted|Received)\/sec", re.I)
     ]
 
     #### Filter CPU, Memory and network headings and create relative aggregates list

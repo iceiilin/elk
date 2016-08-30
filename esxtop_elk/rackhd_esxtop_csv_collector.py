@@ -168,7 +168,9 @@ for (key, data) in enumerate(old_heading_list):
         if patten.match(data):
             #print data
             target_index_list.append(key+1)
-            convert_data = data.replace("\\\\localhost\\", "").replace("\\", "_").replace(" ", "-").replace(".", "_")
+            #convert_data = data.replace("\\\\.+\\?", "").replace("\\", "_").replace(" ", "-").replace(".", "_")
+            convert_data = data.replace("\\", "_").replace(" ", "-").replace(".", "_").replace("__", "")
+            #convert_data = "_".join(data.split("\\")[3:]).replace(" ", "-").replace(".", "_")
             string_convert_list.append(convert_data + " => \"float\"")
             target_heading_list.append(convert_data.replace("\"", ""))
 
@@ -182,7 +184,7 @@ for i in range(iterate-1):
     awk_str = awk_str + " $" + str(target_index_list[i]) + "\",\""
 awk_str = '{\'print' + awk_str + " $" + str(target_index_list[iterate-1]) + '\'}'
 cmd_esxtop = "esxtop --import-entity {} -b -n {} -d {} -c {}" \
-             "| grep -v localhost | awk -F \",\" {} > {}rackhd_esxtop.csv"\
+             "| grep -v CSV | awk -F \",\" {} > {}rackhd_esxtop.csv"\
     .format(ENTITY_FILE, str(count), delay, ESXTOP_CONFIG_FILE, awk_str, execute_path)
 
 ###########################################################################

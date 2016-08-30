@@ -73,6 +73,7 @@
           src={{remote_log_path}}/upstart.tar
           dest={{local_log_path}}
           flat=yes
+          mode=777
       when: log
 
 - hosts: test_machine
@@ -154,12 +155,12 @@
           chdir: "{{inventory_dir}}/elk/elasticsearch"
 
     - name: initiate logstash
-      #shell: ./bin/logstash -f config/ --quiet 2>>/dev/null &
-      shell: ./bin/logstash -f config/ > logstash.log &
-      become: yes 
+      shell: ./bin/logstash -f config/{{item}}.logstash > {{item}}.log &
+      #shell: ./bin/logstash -f config/ > logstash.log &
       args:
           chdir: "{{inventory_dir}}/elk/logstash"
-    
+      with_items: ["benchmark", "log", "rackhd_esxtop"]
+
     - pause: seconds=15
     ## Configure kibana
     - name: Configure kibana
