@@ -21,7 +21,7 @@ PARSER.add_argument("--start", action="store_true", default=False,
                     help="Start operation flag")
 PARSER.add_argument("--stop", action="store_true", default=False,
                     help="Stop operation flag")
-PARSER.add_argument("-d", "--duraion", action="store", default=36000, type=int, dest="duration",
+PARSER.add_argument("-d", "--duraion", action="store", default=3600, type=int, dest="duration",
                     help="Specify esxtop duration in seconds, default duratio is 36000 seconds")
 PARSER.add_argument("-D", "--delay", action="store", default=4, type=int, dest="delay",
                     help="Specify esxtop sampling interval, default 4 seconds")
@@ -29,8 +29,8 @@ PARSER.add_argument("-k", "--kill", action="store_true", default=False, dest="ki
                     help="Flag to kill ELK")
 PARSER.add_argument("-C", "--clear", action="store_true", default=False, dest="clear",
                     help="Flag to clear elasticsearch data")
-PARSER.add_argument("-a", "--auto_stop", action="store_true", default=False, dest="auto_stop",
-                    help="Flag to clear elasticsearch data")
+PARSER.add_argument("-i", "--infinite", action="store_true", default=False, dest="infinite",
+                    help="Flag to run test infinitely until manually stop")
 
 
 ARGS_LIST = PARSER.parse_args()
@@ -44,7 +44,7 @@ DURATION = ARGS_LIST.duration
 DELAY = ARGS_LIST.delay
 KILL = ARGS_LIST.kill
 CLEAR = ARGS_LIST.clear
-AUTO_STOP = ARGS_LIST.auto_stop
+INFINITE = ARGS_LIST.infinite
 
 if __name__ == "__main__":
     arg_override = {"benchmark": BENCHMARK_FLAG,
@@ -66,7 +66,7 @@ if __name__ == "__main__":
         start_cmd = "ansible-playbook -i " + CONFIG_FILE + \
             " start.yml --extra-vars '" + json.dumps(arg_override) + "'"
         subprocess.call(start_cmd, shell=True)
-        if AUTO_STOP:
+        if not INFINITE:
             print "Sleep for {} seconds ... ".format(DURATION)
             time.sleep(DURATION)
             subprocess.call(stop_cmd, shell=True)
