@@ -46,9 +46,21 @@
 
 - hosts: rackhd
   tasks:
-      - name: clear old logs
-        shell: rm /var/log/upstart/*
+      - name: get rackhd ubuntu version 
+        shell: lsb_release -a | grep Release | awk '{print $2}' | awk -F '.' '{print $1}'
+        register: release
         ignore_errors: yes
         become: True
         when: log
 
+      - name: clear old logs
+        shell: rm /var/log/upstart/*
+        ignore_errors: yes
+        become: True
+        when: log and (release == "14")
+
+      - name: clear old logs
+        shell: rm /var/log/rackhd/*
+        ignore_errors: yes
+        become: True
+        when: log and (release == "16")

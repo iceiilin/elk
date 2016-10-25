@@ -2,7 +2,7 @@
 localhost   ansible_connection=local
 
 [rackhd]
-10.62.59.224
+192.168.128.71
 
 [esxi_server]
 10.62.59.114

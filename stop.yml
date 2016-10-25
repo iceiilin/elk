@@ -60,13 +60,26 @@
     local_log_path: "{{inventory_dir}}/logs/"
 
   tasks:
+    - name: get rackhd ubuntu version 
+      shell: lsb_release -a | grep Release | awk '{print $2}' | awk -F '.' '{print $1}'
+      register: release
+      ignore_errors: yes
+      become: True
+      when: log
 
     - name: pack RackHD log files
       shell: tar -cvf upstart.tar upstart/
       args:
           chdir: "{{remote_log_path}}"
       become: yes 
-      when: log
+      when: log and (release == "14")
+
+    - name: pack RackHD log files
+      shell: tar -cvf upstart.tar rackhd/ 
+      args:
+          chdir: "{{remote_log_path}}"
+      become: yes 
+      when: log and (release == "16")
 
     - name: copy RackHD log files
       fetch:
@@ -81,7 +94,6 @@
   vars:
     benchmark_script_path: "{{inventory_dir}}/benchmark_elk/"
     benchmark_tool_path: "{{inventory_dir}}/RackHD/test/"
-    log_path: "{{inventory_dir}}/"
     logstash_config_path: "{{inventory_dir}}/elk/logstash/config/"
     kibana_config_path: "{{inventory_dir}}/elk/kibana/"
     benchmark_kibana_json: "{{ lookup('file', 'elk/kibana/rackhd_benchmark_kibana.json') | from_json}}" 

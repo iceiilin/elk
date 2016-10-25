@@ -3,10 +3,12 @@
 This script is to start or stop RackHD ELK log and performance data collecting tool
 """
 # pylint: disable=invalid-name
+import os
 import json
 import argparse
 import subprocess
 import time
+import shutil
 
 PARSER = argparse.ArgumentParser(description='RackHD ELK log and performance data collect tool')
 PARSER.add_argument("-b", "--benchmark", action="store_false", default=True, dest="benchmark",
@@ -21,7 +23,7 @@ PARSER.add_argument("--start", action="store_true", default=False,
                     help="Start operation flag")
 PARSER.add_argument("--stop", action="store_true", default=False,
                     help="Stop operation flag")
-PARSER.add_argument("-d", "--duraion", action="store", default=3600, type=int, dest="duration",
+PARSER.add_argument("-d", "--duration", action="store", default=200, type=int, dest="duration",
                     help="Specify esxtop duration in seconds, default duratio is 36000 seconds")
 PARSER.add_argument("-D", "--delay", action="store", default=4, type=int, dest="delay",
                     help="Specify esxtop sampling interval, default 4 seconds")
@@ -47,6 +49,8 @@ CLEAR = ARGS_LIST.clear
 INFINITE = ARGS_LIST.infinite
 
 if __name__ == "__main__":
+    if os.path.exists("/opt/config/hosts"):
+        shutil.copy("/opt/config/hosts", "/opt/rackhd_elk/hosts")
     arg_override = {"benchmark": BENCHMARK_FLAG,
                     "log": LOG_FLAG,
                     "esxtop": ESXTOP_FLAG}
@@ -75,3 +79,6 @@ if __name__ == "__main__":
     else:
         print "Error: no task is started"
         print "Please specify if you want to start or stop the job"
+
+    while True:
+        pass
