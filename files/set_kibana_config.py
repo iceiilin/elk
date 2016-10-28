@@ -9,7 +9,8 @@ import subprocess
 
 # pylint: disable=invalid-name
 
-EXECUTE_PATH = os.path.split(os.path.realpath(__file__))[0] + "/elk/kibana/"
+#EXECUTE_PATH = os.path.split(os.path.realpath(__file__))[0] + "/elk/kibana/"
+EXECUTE_PATH = os.path.abspath(os.path.join(os.path.split(os.path.realpath(__file__))[0], os.path.pardir)) + "/elk/kibana/"
 
 index_list = ["rackhd_benchmark", "esxtop", "rackhd_log"]
 for index in index_list:

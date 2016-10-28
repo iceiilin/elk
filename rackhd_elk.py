@@ -59,7 +59,7 @@ if __name__ == "__main__":
     if CLEAR:
         subprocess.call("curl -XDELETE localhost:9200/_all | python -mjson.tool", shell=True)
     if KILL:
-        subprocess.call("sudo ./kill_pid_linux.sh cli elasticsearch logstash", shell=True)
+        subprocess.call("sudo ./files/kill_pid_linux.sh cli elasticsearch logstash", shell=True)
     if START_FLAG:
         count = DURATION / DELAY
         arg_override["delay"] = DELAY

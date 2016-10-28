@@ -1,52 +1,34 @@
 ---
 - hosts: esxi_server
-  vars:
-    delay: 4
-    count: 43200
-    script_path: "/esxtop"
-    #logstash_path: "{{inventory_dir}}/elk/logstash/rackhd_esxtop.logstash"
-    #kibana_path: "{{inventory_dir}}/elk/kibana/rackhd_esxtop_kibana.json"
-    #csv_path: "/tmp/rackhd_esxtop.csv"
+  vars_files:
+    - vars/start.yml
+
   tasks:
     - name: start esxtop script
-      command: "{{script_path}}/rackhd_esxtop_csv_collector.py -n {{count}} -d {{delay}}"
+      command: "{{ esxi_remote_path }}/rackhd_esxtop_csv_collector.py -n {{ esxi_count }} -d {{ esxi_delay }}"
       register: collect_job
-      async: "{{count*delay+10|int}}"
+      async: "{{ esxi_count*esxi_delay+10|int }}"
       poll: 0
       when: esxtop
-    #- name: copy back esxtop logstash configure file
-    #  fetch: src={{script_path}}/rackhd_esxtop.logstash 
-    #      dest={{logstash_path}} 
-    #      flat=yes
-    #  register: result
-    #  until: result.rc == 0
-    #  retry: 5
-    #  delay: 1
-    #- name: copy back esxtop kibana configure file
-    #  fetch: src={{script_path}}/rackhd_esxtop_kibana.json 
-    #      dest={{kibana_path}} 
-    #      flat=yes
-    #- name: copy back esxtop csv file
-    #  fetch: src={{script_path}}/rackhd_esxtop.csv 
-    #      dest=/tmp/rackhd_esxtop.csv 
-    #      flat=yes
 
 - hosts: test_machine
-  vars:
-    benchmark_path: "{{inventory_dir}}/RackHD/test/"
+  vars_files:
+    - vars/start.yml
+
   tasks:
-    - name: start benchmark 
+    - name: start benchmark
       shell: virtualenv .venv; source .venv/bin/activate;pip install -r requirements.txt;pip install markupsafe;python benchmark.py --start
       args:
-          chdir: "{{benchmark_path}}"
+          chdir: "{{ benchmark_path }}"
           executable: /bin/bash
       ignore_errors: yes
       become: False
       when: benchmark
 
 - hosts: rackhd
+
   tasks:
-      - name: get rackhd ubuntu version 
+      - name: get rackhd ubuntu version
         shell: lsb_release -a | grep Release | awk '{print $2}' | awk -F '.' '{print $1}'
         register: release
         ignore_errors: yes
