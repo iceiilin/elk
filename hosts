@@ -2,7 +2,7 @@
 localhost   ansible_connection=local
 
 [rackhd]
-192.168.128.71
+10.62.59.228
 
 [esxi_server]
 10.62.59.114
@@ -32,7 +32,7 @@ esxi_server
 [elk:vars]
 benchmark=true
 esxtop=true
-log=true
+rackhdlog=true
 
 localhost_sudo_user=onrack
 localhost_sudo_pwd=onrack

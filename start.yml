@@ -1,11 +1,30 @@
 ---
+- hosts: test_machine
+
+  tasks:
+    - name: get current timestamp as the index name
+      shell: date +%Y%m%d_%H%M%S
+      register: timestamp
+
+    - name: write timestamp into variable file
+      replace:
+          "dest={{ inventory_dir }}/vars/stop.yml
+          regexp='timestamp.*$'
+          replace='timestamp: '{{ timestamp.stdout }}''"
+
+    - name: generate logstash file for rackhdlog
+      shell: ./generate_rackhdlog_elkconf.sh -p {{ inventory_dir }}/logs/rackhd -t {{ timestamp.stdout }}
+      args:
+          chdir: "{{ inventory_dir }}/files/rackhdlog"
+      when: rackhdlog
+
 - hosts: esxi_server
   vars_files:
     - vars/start.yml
 
   tasks:
     - name: start esxtop script
-      command: "{{ esxi_remote_path }}/rackhd_esxtop_csv_collector.py -n {{ esxi_count }} -d {{ esxi_delay }}"
+      command: "{{ esxi_remote_path }}/esxtop_csv_collector.py -n {{ esxi_count }} -d {{ esxi_delay }} -p {{ inventory_dir }}/logs -t {{ hostvars['localhost']['timestamp']['stdout'] }} "
       register: collect_job
       async: "{{ esxi_count*esxi_delay+10|int }}"
       poll: 0
@@ -17,7 +36,7 @@
 
   tasks:
     - name: start benchmark
-      shell: virtualenv .venv; source .venv/bin/activate;pip install -r requirements.txt;pip install markupsafe;python benchmark.py --start
+      shell: virtualenv .venv; source .venv/bin/activate;pip install -r requirements.txt;python benchmark.py --start
       args:
           chdir: "{{ benchmark_path }}"
           executable: /bin/bash
@@ -25,24 +44,41 @@
       become: False
       when: benchmark
 
-- hosts: rackhd
+    - name: get latest benchmark log file
+      shell:
+          virtualenv .venv > /dev/null; source .venv/bin/activate > /dev/null;python benchmark.py --getdir
+      register: benchmark_log_path
+      args:
+          chdir: "{{ benchmark_path }}"
+          executable: /bin/bash
+      when: benchmark
 
-  tasks:
-      - name: get rackhd ubuntu version
-        shell: lsb_release -a | grep Release | awk '{print $2}' | awk -F '.' '{print $1}'
-        register: release
-        ignore_errors: yes
-        become: True
-        when: log
+    - name: generate elk config files for benchmark
+      shell: ./generate_benchmark_elkconf.sh -p {{ benchmark_log_path.stdout }}/data -t {{ timestamp.stdout }}
+      args:
+          chdir: "{{ inventory_dir }}/files/benchmark"
+      when: benchmark
 
-      - name: clear old logs
-        shell: rm /var/log/upstart/*
-        ignore_errors: yes
-        become: True
-        when: log and (release == "14")
+#- hosts: rackhd
 
-      - name: clear old logs
-        shell: rm /var/log/rackhd/*
-        ignore_errors: yes
-        become: True
-        when: log and (release == "16")
+  #tasks:
+      #- name: get rackhd ubuntu version
+        #shell: lsb_release -a | grep Release | awk '{print $2}' | awk -F '.' '{print $1}'
+        #register: release
+        #ignore_errors: yes
+        #become: True
+        #when: rackhdlog
+
+      #- name: clear old logs for ubuntu 14
+        #shell: rm /var/log/upstart/on-*
+        ##file: path=/var/log/upstart/* state=absent
+        #ignore_errors: yes
+        #become: True
+        #when: rackhdlog and (release.stdout == "14")
+
+      #- name: clear old logs for ubuntu 16
+        #shell: rm /var/log/rackhd/*
+        ##file: path=/var/log/rackhd/* state=absent
+        #ignore_errors: yes
+        #become: True
+        #when: rackhdlog and (release.stdout == "16")

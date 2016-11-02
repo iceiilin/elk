@@ -1,6 +1,6 @@
 esxi_remote_path: "/esxtop" # common variable
-esxi_logstash: "{{ inventory_dir }}/elk/logstash/config/rackhd_esxtop.logstash"
-esxi_kibana: "{{ inventory_dir }}/elk/kibana/rackhd_esxtop_kibana.json"
+esxi_logstash: "{{ inventory_dir }}/elk/logstash/config/esxtop.logstash"
+esxi_kibana: "{{ inventory_dir }}/elk/kibana/esxtop.kibana"
 esxi_log: "{{ inventory_dir }}/logs/rackhd_esxtop.csv"
 
 rackhdlog_remote_path: "/var/log"
@@ -11,3 +11,6 @@ benchmark_tool_path: "{{inventory_dir}}/RackHD/test/"
 
 logstash_config_path: "{{inventory_dir}}/elk/logstash/config/"
 kibana_config_path: "{{inventory_dir}}/elk/kibana/"
+
+timestamp: '20161102_011232'
+

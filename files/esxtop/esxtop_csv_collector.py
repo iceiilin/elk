@@ -9,7 +9,7 @@ import re
 import os
 import argparse
 import subprocess
-import configure_file_generator as generator
+import elkconf_generator as generator
 
 # pylint: disable=invalid-name, anomalous-backslash-in-string, line-too-long, anomalous-unicode-escape-in-string
 parser = argparse.ArgumentParser(description='esxtop csv file parser')
@@ -17,13 +17,18 @@ parser.add_argument("-d", action="store", default="20", help="Samples interval")
 parser.add_argument("-n", action="store", default="2500", type=int, help="Samples count")
 parser.add_argument("-c", action="store", default="rackhd_esxtop60rc",
                     help="Specify esxtop configure file")
+parser.add_argument("-t", action="store", default="",
+                    help="Timestamp when starting data collection")
+parser.add_argument("-p", action="store", default="/home/onrack/elk/log",
+                    help="Path for esxtop data log")
 parser.add_argument("--nic", action="store", default="none", help="vmnic name")
 parser.add_argument("--vm", action="store", default="none", help="Virtual Machine host list")
 parser.add_argument("--entity", action="store", default="none", help="Specify entity file")
-parser.add_argument("--logstash", action="store", default="rackhd_esxtop.logstash",
+parser.add_argument("--logstash", action="store", default="esxtop.logstash",
                     help="Generate logstash configure flag")
-parser.add_argument("--kibana", action="store", default="rackhd_esxtop_template.json",
+parser.add_argument("--kibana", action="store", default="esxtop_kibana.template",
                     help="Generate kibana configure flag")
+
 #parser.add_argument("--path", action="store", default="\\tmp\\", help="csv file path")
 args_list = parser.parse_args()
 
@@ -31,14 +36,15 @@ execute_path = os.path.split(os.path.realpath(__file__))[0] + "/"
 
 delay = args_list.d
 count = args_list.n
+log_path = args_list.p
+timestamp = args_list.t
 vm_list = args_list.vm.split(",")
 nic_list = args_list.nic.split(",")
 entity_config = args_list.entity
 LOGSTASH_CONFIG_FILE = execute_path + args_list.logstash
 ESXTOP_CONFIG_FILE = execute_path + args_list.c
 KIBANA_CONFIG_TEMPLATE = execute_path + args_list.kibana
-KIBANA_CONFIG_FILE = execute_path + "rackhd_esxtop_kibana.json"
-
+KIBANA_CONFIG_FILE = execute_path + "esxtop.kibana"
 
 OLD_ENTITY_FILE = execute_path + "rackhd_esxtop.entity.origin"
 ENTITY_FILE = execute_path + "rackhd_esxtop.entity" if (entity_config == "none") else execute_path + entity_config
@@ -190,8 +196,8 @@ cmd_esxtop = "esxtop --import-entity {} -b -n {} -d {} -c {}" \
 ###########################################################################
 ## This portion is to generate logstash and kibana configure file
 ###########################################################################
-generator.create_logstash(target_heading_list, string_convert_list, LOGSTASH_CONFIG_FILE)
-generator.create_kibana(target_heading_list, KIBANA_CONFIG_TEMPLATE, KIBANA_CONFIG_FILE)
+generator.create_logstash(target_heading_list, string_convert_list, LOGSTASH_CONFIG_FILE, log_path, timestamp)
+generator.create_kibana(target_heading_list, KIBANA_CONFIG_TEMPLATE, KIBANA_CONFIG_FILE, timestamp)
 
 ###########################################################################
 ## This portion is to add retry mechanism

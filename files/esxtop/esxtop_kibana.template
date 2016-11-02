@@ -1,9 +1,9 @@
 [
   {
-    "_id": "rack_hd_normal_dashboard",
+    "_id": "esxtop_TMP1",
     "_type": "dashboard",
     "_source": {
-      "title": "rack_hd_normal_dashboard",
+      "title": "esxtop_TMP1",
       "hits": 0,
       "description": "",
       "panelsJSON": "[{\"id\":\"physical_network_usage\",\"type\":\"visualization\",\"panelIndex\":1,\"size_x\":7,\"size_y\":3,\"col\":1,\"row\":1},{\"id\":\"cpu_usage\",\"type\":\"visualization\",\"panelIndex\":2,\"size_x\":7,\"size_y\":3,\"col\":1,\"row\":4},{\"id\":\"memory_usage\",\"type\":\"visualization\",\"panelIndex\":3,\"size_x\":5,\"size_y\":6,\"col\":8,\"row\":1}]",
@@ -26,7 +26,7 @@
       "description": "",
       "version": 1,
       "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\"filter\":[],\"index\":\"esxtop\",\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647},\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}}}"
+        "searchSourceJSON": "{\"filter\":[],\"index\":\"esxtop_TMP1\",\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647},\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}}}"
       }
     }
   }

@@ -1,0 +1,48 @@
+# The # character at the beginning of a line indicates a comment. Use
+# comments to describe your configuration.
+
+input
+{
+    file {
+        path=> "TMP1/on-*.log"
+        start_position => beginning
+        ignore_older => 0
+        sincedb_path => "/dev/null"
+        codec => multiline {
+            pattern => "^\[%{WORD}\] \[%{TIMESTAMP_ISO8601}\]"
+            negate => "true"
+            what => "previous"
+            auto_flush_interval => 5
+        }
+        type => "static-logs"
+    }
+}
+
+filter
+{
+    if "static-logs" == [type] {
+        grok {
+            match => {"message" => "\[%{WORD:loglevel}\] \[%{TIMESTAMP_ISO8601:date}\] \[%{NOTSPACE:process}\] \[%{NOTSPACE:module}\] \[%{NOTSPACE:runner}\] %{GREEDYDATA:event}\r\n -> %{NOTSPACE:caller}\r%{GREEDYDATA:content}"}
+            add_tag => ["%{process}"]
+        }
+
+        if "_grokparsefailure" in [tags] {
+            mutate {
+                add_field => {
+                    "process" => "others"
+                }
+            }
+        }
+    }
+}
+
+output
+{
+    if "static-logs" == [type] {
+        elasticsearch
+        {
+            index => "rackhdlog_TMP2"
+            codec => "json"
+        }
+    }
+}

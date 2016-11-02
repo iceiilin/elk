@@ -1,84 +1,84 @@
 input
 {
     file {
-        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/db_document.js"]
+        path => ["TMP1/db_document.js"]
         type => "rackhd_db_document"
         start_position => "beginning"
         ignore_older => 0
         sincedb_path => "/dev/null"
     }
     file {
-        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/cpu.js"]
+        path => ["TMP1/cpu.js"]
         type => "rackhd_cpu"
         start_position => "beginning"
         ignore_older => 0
         sincedb_path => "/dev/null"
     }
     file {
-        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/syscpu.js"]
+        path => ["TMP1/syscpu.js"]
         type => "rackhd_syscpu"
         start_position => "beginning"
         ignore_older => 0
         sincedb_path => "/dev/null"
     }
     file {
-        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/usrcpu.js"]
+        path => ["TMP1/usrcpu.js"]
         type => "rackhd_usrcpu"
         start_position => "beginning"
         ignore_older => 0
         sincedb_path => "/dev/null"
     }
     file {
-        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/rddsk.js"]
+        path => ["TMP1/rddsk.js"]
         type => "rackhd_rddsk"
         start_position => "beginning"
         ignore_older => 0
         sincedb_path => "/dev/null"
     }
     file {
-        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/wrdsk.js"]
+        path => ["TMP1/wrdsk.js"]
         type => "rackhd_wrdsk"
         start_position => "beginning"
         ignore_older => 0
         sincedb_path => "/dev/null"
     }
     file {
-        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/rnetbw.js"]
+        path => ["TMP1/rnetbw.js"]
         type => "rackhd_rnetbw"
         start_position => "beginning"
         ignore_older => 0
         sincedb_path => "/dev/null"
     }
     file {
-        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/rnet.js"]
+        path => ["TMP1/rnet.js"]
         type => "rackhd_rnet"
         start_position => "beginning"
         ignore_older => 0
         sincedb_path => "/dev/null"
     }
     file {
-        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/rsize.js"]
+        path => ["TMP1/rsize.js"]
         type => "rackhd_rsize"
         start_position => "beginning"
         ignore_older => 0
         sincedb_path => "/dev/null"
     }
     file {
-        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/snetbw.js"]
+        path => ["TMP1/snetbw.js"]
         type => "rackhd_snetbw"
         start_position => "beginning"
         ignore_older => 0
         sincedb_path => "/dev/null"
     }
     file {
-        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/snet.js"]
+        path => ["TMP1/snet.js"]
         type => "rackhd_snet"
         start_position => "beginning"
         ignore_older => 0
         sincedb_path => "/dev/null"
     }
     file {
-        path => ["/home/onrack/_src/benchmark/20160725-001442/freestyle/data/vsize.js"]
+        path => ["TMP1/vsize.js"]
         type => "rackhd_vsize"
         start_position => "beginning"
         ignore_older => 0
@@ -124,7 +124,7 @@ output
     {
        hosts => ["localhost:9200"]
        codec => "json"
-       index => "rackhd_benchmark"
+       index => "benchmark_TMP2"
     }
 }
 
