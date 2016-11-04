@@ -17,3 +17,21 @@ elk_install_info:
     - { name: "logstash",   url: "http://10.62.59.209/static/uploads/elk_packages/logstash-2.3.4.tar.gz" }
     - { name: "elasticsearch",   url: "http://10.62.59.209/static/uploads/elk_packages/elasticsearch-2.3.5.tar.gz" }
     - { name: "kibana",   url: "http://10.62.59.209/static/uploads/elk_packages/kibana-4.5.4-linux-x64.tar.gz" }
+
+esxtop_delay: 4
+esxtop_count: 43200
+esxtop_exec_path: "/esxtop"
+benchmark_exec_path: "{{ inventory_dir }}/RackHD/test"
+rackhdlog_exec_path: "/var/log"
+
+esxtop_elk_script_path: "{{ inventory_dir }}/files/esxtop"
+benchmark_elk_script_path: "{{ inventory_dir }}/files/benchmark"
+rackhdlog_elk_script_path: "{{ inventory_dir }}/files/rackhdlog"
+
+data_log_path: "{{ inventory_dir }}/logs"
+
+elk_path: "{{ inventory_dir }}/elk"
+logstash_conf_path: "{{ elk_path }}/logstash/rackhd_config"
+kibana_conf_path: "{{ elk_path }}/kibana"
+
+timestamp: '20161104_184452'

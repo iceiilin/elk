@@ -1,0 +1,12 @@
+files/benchmark/*.kibana
+files/benchmark/*.logstash
+files/rackhdlog/*.logstash
+files/rackhdlog/*.kibana
+
+RackHD
+
+elk
+
+logs
+
+*.retry

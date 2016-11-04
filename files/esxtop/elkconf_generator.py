@@ -54,7 +54,7 @@ HEADINGS = [
     'Network-Port(vSwitch8:167772167:37496:Ted_DEV_ORA)_MBits-Received/sec'
 ]
 
-def create_kibana(heading_list, template, configure_file, timestamp):
+def create_kibana(heading_list, template, configure_file, suffix):
     """
     :param heading_list: headings_list includes headings in elasticsearchs
     :param template: template is a kibana configure json template. Dashboard configure is hard-coded and visualization
@@ -66,8 +66,8 @@ def create_kibana(heading_list, template, configure_file, timestamp):
     kibana_json_example = json.load(f_old_kibana)
     kibana_json = []
     visualization_json_list = []
-    index_name = u'esxtop_' + timestamp.decode('utf-8')
-    vis_titles = ["esxtop_cpu_usage_" + timestamp, "esxtop_memory_usage_" + timestamp, "esxtop_physical_network_usage_" + timestamp] ## visualization names
+    index_name = u'esxtop' + suffix.decode('utf-8')
+    vis_titles = ["esxtop_cpu_usage" + suffix, "esxtop_memory_usage" + suffix, "esxtop_physical_network_usage" + suffix] ## visualization names
     for configure in kibana_json_example:
         if configure["_type"] == "visualization":
             tmpconf = json.loads(configure["_source"]["kibanaSavedObjectMeta"]["searchSourceJSON"])
@@ -154,7 +154,7 @@ def create_kibana(heading_list, template, configure_file, timestamp):
     f_new_kibana.close()
     f_old_kibana.close()
 
-def create_logstash(heading_list, convert_list, config_file_name, log_path, timestamp):
+def create_logstash(heading_list, convert_list, config_file_name, log_path, suffix):
     """
     :param heading_list: headings_list filtered to be delivered to logstash
     :param convert_list: columns that should be transfer from string to number
@@ -169,11 +169,11 @@ def create_logstash(heading_list, convert_list, config_file_name, log_path, time
     logstash_string = \
         'input {\n' \
         '    file {\n' \
-        '        path => ["' + log_path + '/rackhd_esxtop.csv"]\n' \
+        '        path => ["' + log_path + '/rackhd_esxtop' + suffix + '.csv"]\n' \
         '        start_position => "beginning"\n' \
         '        ignore_older => 0\n' \
         '        sincedb_path => "/dev/null"\n' \
-        '        type => esxtop_csv \n' \
+        '        type => esxtop_csv\n' \
         '    }\n' \
         '}\n' \
         '\n' \
@@ -199,7 +199,7 @@ def create_logstash(heading_list, convert_list, config_file_name, log_path, time
         '    {\n' \
         '       hosts => ["localhost:9200"]\n' \
         '       codec => "json"\n' \
-        '       index => "esxtop_' + timestamp + '"\n' \
+        '       index => "esxtop' + suffix + '"\n' \
         '    }\n' \
         '}'
     f_logstash.write(logstash_string)

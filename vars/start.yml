@@ -1,5 +1,0 @@
-esxi_delay: 4
-esxi_count: 43200
-esxi_remote_path: "/esxtop" # common variable
-
-benchmark_path: "{{ inventory_dir }}/RackHD/test/"

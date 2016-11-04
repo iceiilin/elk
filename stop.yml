@@ -1,43 +1,65 @@
 ---
+- hosts: test_machine
+
+  tasks:
+    - name: kill previous logstash processes
+      shell: "{{ inventory_dir }}/files/kill_pid_linux.sh logstash"
+      become: yes
+
+    - name: remove previous data logs
+      shell: rm -rf {{ data_log_path }}/*; rm {{ logstash_conf_path }}/*.logstash; rm -rf {{ kibana_conf_path }}/*.kibana
+
 - hosts: esxi_server
-  vars_files:
-    - vars/stop.yml
 
   tasks:
     - name: stop esxtop script
-      command: ./kill_pid_esxi.sh esxtop
-      args:
-          chdir: "{{ esxi_remote_path }}"
+      command: "{{ esxtop_exec_path }}/kill_pid_esxi.sh esxtop"
       ignore_errors: yes
+      when: esxtop
+
+    - name: find esxtop logstash config file
+      shell: ls {{ esxtop_exec_path }}/*.logstash
+      register: fetch_file
       when: esxtop
 
     - name: copy back esxtop logstash file
       fetch:
-          src={{ esxi_remote_path }}/esxtop.logstash
-          dest={{ esxi_logstash }}
+          src={{ fetch_file.stdout }}
+          dest={{ logstash_conf_path }}
           flat=yes
+          fail_on_missing=yes
       ignore_errors: yes
+      when: esxtop
+
+    - name: find esxtop kibana config file
+      shell: ls {{ esxtop_exec_path }}/*.kibana
+      register: fetch_file
       when: esxtop
 
     - name: copy back esxtop kibana configure file
       fetch:
-          src={{ esxi_remote_path }}/esxtop.kibana
-          dest={{ esxi_kibana }}
+          src={{ fetch_file.stdout }}
+          dest={{ kibana_conf_path }}
           flat=yes
+          fail_on_missing=yes
       ignore_errors: yes
+      when: esxtop
+
+    - name: find esxtop csv file
+      shell: ls {{ esxtop_exec_path }}/*.csv
+      register: fetch_file
       when: esxtop
 
     - name: copy back esxtop csv file
       fetch:
-          src={{ esxi_remote_path }}/rackhd_esxtop.csv
-          dest={{ esxi_log }}
+          src={{ fetch_file.stdout }}
+          dest={{ data_log_path }}
           flat=yes
+          fail_on_missing=yes
       ignore_errors: yes
       when: esxtop
 
 - hosts: rackhd
-  vars_files:
-    - vars/stop.yml
 
   tasks:
     - name: get rackhd ubuntu version
@@ -50,28 +72,26 @@
     - name: pack RackHD log files
       shell: tar zcvf upstart.tar.gz upstart/
       args:
-          chdir: "{{ rackhdlog_remote_path }}"
+          chdir: "{{ rackhdlog_exec_path }}"
       become: yes
       when: rackhdlog and (release.stdout == "14")
 
     - name: pack RackHD log files
       shell: tar zcvf upstart.tar.gz rackhd/
       args:
-          chdir: "{{ rackhdlog_remote_path }}"
+          chdir: "{{ rackhdlog_exec_path }}"
       become: yes
       when: rackhdlog and (release.stdout == "16")
 
     - name: copy RackHD log files
       fetch:
-          src={{ rackhdlog_remote_path }}/upstart.tar.gz
-          dest={{ rackhdlog_log }}
+          src={{ rackhdlog_exec_path }}/upstart.tar.gz
+          dest={{ data_log_path }}
           flat=yes
           mode=777
       when: rackhdlog
 
 - hosts: test_machine
-  vars_files:
-    - vars/stop.yml
 
   tasks:
     ## Prepare benchmark logs and logstash configure file
@@ -79,7 +99,7 @@
       shell:
           virtualenv .venv; source .venv/bin/activate;python benchmark.py --stop
       args:
-          chdir: "{{ benchmark_tool_path }}"
+          chdir: "{{ benchmark_exec_path }}"
           executable: /bin/bash
       ignore_errors: yes
       when: benchmark
@@ -89,47 +109,73 @@
       shell: tar zxvf upstart.tar.gz; rm upstart.tar.gz
       register: unpack_flag
       args:
-          chdir: "{{ inventory_dir }}/logs"
+          chdir: "{{ data_log_path }}"
       ignore_errors: yes
       when: rackhdlog
 
     ## Copy ELK config files into corresponding tool
+    - name: find benchmark logstash config file
+      shell: ls {{ benchmark_elk_script_path }}/*.logstash
+      register: fetch_file
+      when: benchmark
+
     - name: copy benchmark logstash file to correct place
-      fetch:
-          src={{ benchmark_script_path }}benchmark.logstash
-          dest={{ logstash_config_path }}benchmark.logstash
-          flat=yes
+      copy:
+          src={{ fetch_file.stdout }}
+          dest={{ logstash_conf_path }}
+      when: benchmark
+
+    - name: find benchmark kibana config file
+      shell: ls {{ benchmark_elk_script_path }}/*.kibana
+      register: fetch_file
       when: benchmark
 
     - name: copy benchmark kibana file to correct place
-      fetch:
-          src={{ benchmark_script_path }}benchmark.kibana
-          dest={{ kibana_config_path }}benchmark.kibana
-          flat=yes
+      copy:
+          src={{ fetch_file.stdout }}
+          dest={{ kibana_conf_path }}
       when: benchmark
 
-    - name: copy rackhdlog logstash file to correct place
-      fetch:
-          src={{ inventory_dir }}/files/rackhdlog/rackhdlog.logstash
-          dest={{ logstash_config_path }}rackhdlog.logstash
-          flat=yes
+    - name: find rackhdlog logstash config file
+      shell: ls {{ rackhdlog_elk_script_path }}/*.logstash
+      register: fetch_file
       when: rackhdlog
 
-    - name: kill previous logstash processes
-      shell: "{{ inventory_dir }}/files/kill_pid_linux.sh logstash"
-      become: yes
+    - name: copy rackhdlog logstash file to correct place
+      copy:
+          src={{ fetch_file.stdout }}
+          dest={{ logstash_conf_path }}
+      when: rackhdlog
+
+    - name: find rackhdlog kibana config file
+      shell: ls {{ rackhdlog_elk_script_path }}/*.kibana
+      register: fetch_file
+      when: rackhdlog
+
+    - name: copy rackhdlog kibana file to correct place
+      copy:
+          src={{ fetch_file.stdout }}
+          dest={{ kibana_conf_path }}
+      when: rackhdlog
+
+    - name: find logstash config file
+      shell: ls *.logstash
+      args:
+          chdir: "{{ logstash_conf_path }}"
+      register: conf_file
 
     - name: initiate logstash
-      shell: ./bin/logstash -f config/{{ item }}.logstash > {{ item }}.log &
+      shell: ./bin/logstash -f {{ logstash_conf_path }}/{{ item }} >> logs/logstash.log &
       #shell: ./bin/logstash -f config/ > logstash.log &
       args:
-          chdir: "{{ inventory_dir }}/elk/logstash"
-      with_items: ["benchmark", "rackhdlog", "esxtop"]
+          chdir: "{{ elk_path }}/logstash"
+      with_items:
+          "{{ conf_file.stdout_lines }}"
 
     #- pause: seconds=15
     ## Configure kibana
     - name: Configure kibana
-      command: python {{ inventory_dir }}/files/set_kibana_config.py -t {{ timestamp }}
+      command: python {{ inventory_dir }}/files/set_kibana_config.py
       register: result
       args:
           chdir: "{{ inventory_dir }}"

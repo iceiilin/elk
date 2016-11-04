@@ -19,5 +19,5 @@ do
     esac
 done
 
-sed -e "s#TMP1#"$path"#g" -e "s/TMP2/$time/g" benchmark_logstash.template > benchmark.logstash
-sed -e "s/TMP1/$time/g" benchmark_kibana.template > benchmark.kibana
+sed -e "s#TMP1#"$path"#g" -e "s/TMP2/$time/g" benchmark_logstash.template > benchmark_$time.logstash
+sed -e "s/TMP1/$time/g" benchmark_kibana.template > benchmark_$time.kibana

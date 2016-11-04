@@ -1,21 +1,21 @@
 ---
 - hosts: test_machine
-  vars_files:
-    - vars/setup.yml
+
   tasks:
     - name: Modify configuration in benchmark test
-      shell: sed -i "/{{ item.key }}/c\{{ item.key }} = {{ item.value }}" {{ inventory_dir }}/RackHD/test/config/config.ini
+      shell: sed -i "/{{ item.key }}/c\{{ item.key }} = {{ item.value }}" {{ benchmark_exec_path }}/config/config.ini
       with_items: benchmark_config
       when: benchmark
 
     - name: Add entries in .passwd in benchmark test
-      shell: echo "{{ item.key }}=\"{{ item.value | b64encode }}\"" >> {{ inventory_dir }}/RackHD/test/.passwd
+      shell: echo "{{ item.key }}=\"{{ item.value | b64encode }}\"" >> {{ benchmark_exec_path }}/.passwd
       with_items: benchmark_localhost
       when: benchmark
 
 - hosts: esxi_server
   tasks:
     - name: Copy scripts from test machine
-      copy: src={{ inventory_dir }}/files/esxtop/
-            dest=/esxtop
+      copy: src={{ esxtop_elk_script_path }}
+            dest=/
             mode=0744
+    - debug: msg="current host:{{ inventory_hostname }}"

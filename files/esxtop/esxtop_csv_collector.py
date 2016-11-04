@@ -17,9 +17,9 @@ parser.add_argument("-d", action="store", default="20", help="Samples interval")
 parser.add_argument("-n", action="store", default="2500", type=int, help="Samples count")
 parser.add_argument("-c", action="store", default="rackhd_esxtop60rc",
                     help="Specify esxtop configure file")
-parser.add_argument("-t", action="store", default="",
-                    help="Timestamp when starting data collection")
-parser.add_argument("-p", action="store", default="/home/onrack/elk/log",
+parser.add_argument("--suffix", action="store", default="",
+                    help="name suffix to build store for the data collection")
+parser.add_argument("--logpath", action="store", default="/home/onrack/elk/log",
                     help="Path for esxtop data log")
 parser.add_argument("--nic", action="store", default="none", help="vmnic name")
 parser.add_argument("--vm", action="store", default="none", help="Virtual Machine host list")
@@ -36,15 +36,15 @@ execute_path = os.path.split(os.path.realpath(__file__))[0] + "/"
 
 delay = args_list.d
 count = args_list.n
-log_path = args_list.p
-timestamp = args_list.t
+suffix = args_list.suffix
+log_path = args_list.logpath
 vm_list = args_list.vm.split(",")
 nic_list = args_list.nic.split(",")
 entity_config = args_list.entity
-LOGSTASH_CONFIG_FILE = execute_path + args_list.logstash
+LOGSTASH_CONFIG_FILE = execute_path + "esxtop" + suffix + ".logstash"
 ESXTOP_CONFIG_FILE = execute_path + args_list.c
 KIBANA_CONFIG_TEMPLATE = execute_path + args_list.kibana
-KIBANA_CONFIG_FILE = execute_path + "esxtop.kibana"
+KIBANA_CONFIG_FILE = execute_path + "esxtop" + suffix + ".kibana"
 
 OLD_ENTITY_FILE = execute_path + "rackhd_esxtop.entity.origin"
 ENTITY_FILE = execute_path + "rackhd_esxtop.entity" if (entity_config == "none") else execute_path + entity_config
@@ -190,14 +190,14 @@ for i in range(iterate-1):
     awk_str = awk_str + " $" + str(target_index_list[i]) + "\",\""
 awk_str = '{\'print' + awk_str + " $" + str(target_index_list[iterate-1]) + '\'}'
 cmd_esxtop = "esxtop --import-entity {} -b -n {} -d {} -c {}" \
-             "| grep -v CSV | awk -F \",\" {} > {}rackhd_esxtop.csv"\
-    .format(ENTITY_FILE, str(count), delay, ESXTOP_CONFIG_FILE, awk_str, execute_path)
+             "| grep -v CSV | awk -F \",\" {} > {}rackhd_esxtop{}.csv"\
+    .format(ENTITY_FILE, str(count), delay, ESXTOP_CONFIG_FILE, awk_str, execute_path, suffix)
 
 ###########################################################################
 ## This portion is to generate logstash and kibana configure file
 ###########################################################################
-generator.create_logstash(target_heading_list, string_convert_list, LOGSTASH_CONFIG_FILE, log_path, timestamp)
-generator.create_kibana(target_heading_list, KIBANA_CONFIG_TEMPLATE, KIBANA_CONFIG_FILE, timestamp)
+generator.create_logstash(target_heading_list, string_convert_list, LOGSTASH_CONFIG_FILE, log_path, suffix)
+generator.create_kibana(target_heading_list, KIBANA_CONFIG_TEMPLATE, KIBANA_CONFIG_FILE, suffix)
 
 ###########################################################################
 ## This portion is to add retry mechanism
@@ -205,7 +205,7 @@ generator.create_kibana(target_heading_list, KIBANA_CONFIG_TEMPLATE, KIBANA_CONF
 i = 0
 while i < 10:
     subprocess.call(cmd_esxtop, shell=True)
-    f = open(execute_path + "rackhd_esxtop.csv", "rU")
+    f = open(execute_path + "rackhd_esxtop" + suffix + ".csv", "rU")
     line_count = 0
     for line in f:
         line_count += 1

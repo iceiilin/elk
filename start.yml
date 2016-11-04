@@ -8,37 +8,49 @@
 
     - name: write timestamp into variable file
       replace:
-          "dest={{ inventory_dir }}/vars/stop.yml
+          "dest={{ inventory_dir }}/group_vars/elk.yml
           regexp='timestamp.*$'
           replace='timestamp: '{{ timestamp.stdout }}''"
 
+    - name: Remove previous config file for rackhdlog
+      shell: rm {{ rackhdlog_elk_script_path }}/*.logstash; rm {{ rackhdlog_elk_script_path }}/*.kibana
+      ignore_errors: yes
+      when: rackhdlog
+
     - name: generate logstash file for rackhdlog
-      shell: ./generate_rackhdlog_elkconf.sh -p {{ inventory_dir }}/logs/rackhd -t {{ timestamp.stdout }}
+      shell: ./generate_rackhdlog_elkconf.sh -p {{ data_log_path }}/rackhd -t {{ timestamp.stdout }}
       args:
-          chdir: "{{ inventory_dir }}/files/rackhdlog"
+          chdir: "{{ rackhdlog_elk_script_path }}"
       when: rackhdlog
 
 - hosts: esxi_server
-  vars_files:
-    - vars/start.yml
 
   tasks:
+    - name: Remove previous config and log file
+      shell: rm {{ esxtop_exec_path }}/*.csv; rm {{ esxtop_exec_path }}/*.logstash; rm {{ esxtop_exec_path }}/*.kibana
+      ignore_errors: yes
+      when: esxtop
+
+    - name: Get suffix of the log name
+      shell: echo _`echo {{ inventory_hostname }} | awk -F "." '{print $4}'`_{{ hostvars['localhost']['timestamp']['stdout'] }}
+      register: file_suffix
+
+    - debug: msg={{ file_suffix.stdout }}
+
     - name: start esxtop script
-      command: "{{ esxi_remote_path }}/esxtop_csv_collector.py -n {{ esxi_count }} -d {{ esxi_delay }} -p {{ inventory_dir }}/logs -t {{ hostvars['localhost']['timestamp']['stdout'] }} "
+      command: "{{ esxtop_exec_path }}/esxtop_csv_collector.py -n {{ esxtop_count }} -d {{ esxtop_delay }} --logpath {{ data_log_path }} --suffix {{ file_suffix.stdout }} "
       register: collect_job
-      async: "{{ esxi_count*esxi_delay+10|int }}"
+      async: "{{ esxtop_count*esxtop_delay+10|int }}"
       poll: 0
       when: esxtop
 
 - hosts: test_machine
-  vars_files:
-    - vars/start.yml
 
   tasks:
     - name: start benchmark
       shell: virtualenv .venv; source .venv/bin/activate;pip install -r requirements.txt;python benchmark.py --start
       args:
-          chdir: "{{ benchmark_path }}"
+          chdir: "{{ benchmark_exec_path }}"
           executable: /bin/bash
       ignore_errors: yes
       become: False
@@ -49,14 +61,19 @@
           virtualenv .venv > /dev/null; source .venv/bin/activate > /dev/null;python benchmark.py --getdir
       register: benchmark_log_path
       args:
-          chdir: "{{ benchmark_path }}"
+          chdir: "{{ benchmark_exec_path }}"
           executable: /bin/bash
       when: benchmark
+
+    - name: Remove previous config and log file
+      shell: rm {{ benchmark_elk_script_path }}/*.logstash; rm {{ benchmark_elk_script_path }}/*.kibana
+      ignore_errors: yes
+      when: esxtop
 
     - name: generate elk config files for benchmark
       shell: ./generate_benchmark_elkconf.sh -p {{ benchmark_log_path.stdout }}/data -t {{ timestamp.stdout }}
       args:
-          chdir: "{{ inventory_dir }}/files/benchmark"
+          chdir: "{{ benchmark_elk_script_path }}"
       when: benchmark
 
 #- hosts: rackhd

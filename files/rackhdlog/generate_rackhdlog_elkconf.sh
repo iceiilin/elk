@@ -19,4 +19,5 @@ do
     esac
 done
 
-sed -e "s#TMP1#"$path"#g" -e "s/TMP2/$time/g" rackhdlog_logstash.template > rackhdlog.logstash
+sed -e "s#TMP1#"$path"#g" -e "s/TMP2/$time/g" rackhdlog_logstash.template > rackhdlog_$time.logstash
+echo {} > rackhdlog_$time.kibana
