@@ -12,10 +12,10 @@
       with_items: benchmark_localhost
       when: benchmark
 
-- hosts: esxi_server
-  tasks:
-    - name: Copy scripts from test machine
-      copy: src={{ esxtop_elk_script_path }}
-            dest=/
-            mode=0744
-    - debug: msg="current host:{{ inventory_hostname }}"
+#- hosts: esxi_server
+  #tasks:
+    #- name: Copy scripts from test machine
+      #copy: src={{ esxtop_elk_script_path }}
+            #dest=/
+            #mode=0744
+    #- debug: msg="current host:{{ inventory_hostname }}"

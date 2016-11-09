@@ -17,46 +17,21 @@
       ignore_errors: yes
       when: esxtop
 
-    - name: find esxtop logstash config file
-      shell: ls {{ esxtop_exec_path }}/*.logstash
+    - name: find esxtop elk config file
+      shell: ls {{ item.path }}
+      with_items:
+          "{{ elk_conf_info.esxtop.src }}"
       register: fetch_file
       when: esxtop
 
-    - name: copy back esxtop logstash file
+    - name: copy back esxtop elk config file
       fetch:
-          src={{ fetch_file.stdout }}
-          dest={{ logstash_conf_path }}
+          src={{ fetch_file.results[item.index].stdout }}
+          dest={{ item.path }}
           flat=yes
           fail_on_missing=yes
-      ignore_errors: yes
-      when: esxtop
-
-    - name: find esxtop kibana config file
-      shell: ls {{ esxtop_exec_path }}/*.kibana
-      register: fetch_file
-      when: esxtop
-
-    - name: copy back esxtop kibana configure file
-      fetch:
-          src={{ fetch_file.stdout }}
-          dest={{ kibana_conf_path }}
-          flat=yes
-          fail_on_missing=yes
-      ignore_errors: yes
-      when: esxtop
-
-    - name: find esxtop csv file
-      shell: ls {{ esxtop_exec_path }}/*.csv
-      register: fetch_file
-      when: esxtop
-
-    - name: copy back esxtop csv file
-      fetch:
-          src={{ fetch_file.stdout }}
-          dest={{ data_log_path }}
-          flat=yes
-          fail_on_missing=yes
-      ignore_errors: yes
+      with_items:
+          - "{{ elk_conf_info.esxtop.dst }}"
       when: esxtop
 
 - hosts: rackhd
@@ -65,9 +40,7 @@
     - name: get rackhd ubuntu version
       shell: lsb_release -a | grep Release | awk '{print $2}' | awk -F '.' '{print $1}'
       register: release
-      #ignore_errors: yes
       become: True
-      when: rackhdlog
 
     - name: pack RackHD log files
       shell: tar zcvf upstart.tar.gz upstart/
@@ -114,49 +87,20 @@
       when: rackhdlog
 
     ## Copy ELK config files into corresponding tool
-    - name: find benchmark logstash config file
-      shell: ls {{ benchmark_elk_script_path }}/*.logstash
+    - name: find benchmark and rackhdlog elk config file
+      shell: ls {{ item.path }}
+      with_items:
+          "{{ elk_conf_info.test_machine.src }}"
+      when: item.flag
       register: fetch_file
-      when: benchmark
 
-    - name: copy benchmark logstash file to correct place
+    - name: copy back benchmark and rackhdlog elk config file
       copy:
-          src={{ fetch_file.stdout }}
-          dest={{ logstash_conf_path }}
-      when: benchmark
-
-    - name: find benchmark kibana config file
-      shell: ls {{ benchmark_elk_script_path }}/*.kibana
-      register: fetch_file
-      when: benchmark
-
-    - name: copy benchmark kibana file to correct place
-      copy:
-          src={{ fetch_file.stdout }}
-          dest={{ kibana_conf_path }}
-      when: benchmark
-
-    - name: find rackhdlog logstash config file
-      shell: ls {{ rackhdlog_elk_script_path }}/*.logstash
-      register: fetch_file
-      when: rackhdlog
-
-    - name: copy rackhdlog logstash file to correct place
-      copy:
-          src={{ fetch_file.stdout }}
-          dest={{ logstash_conf_path }}
-      when: rackhdlog
-
-    - name: find rackhdlog kibana config file
-      shell: ls {{ rackhdlog_elk_script_path }}/*.kibana
-      register: fetch_file
-      when: rackhdlog
-
-    - name: copy rackhdlog kibana file to correct place
-      copy:
-          src={{ fetch_file.stdout }}
-          dest={{ kibana_conf_path }}
-      when: rackhdlog
+          src={{ fetch_file.results[item.index].stdout }}
+          dest={{ item.path }}
+      with_items:
+          - "{{ elk_conf_info.test_machine.dst }}"
+      when: item.flag
 
     - name: find logstash config file
       shell: ls *.logstash
@@ -165,21 +109,18 @@
       register: conf_file
 
     - name: initiate logstash
-      shell: ./bin/logstash -f {{ logstash_conf_path }}/{{ item }} >> logs/logstash.log &
-      #shell: ./bin/logstash -f config/ > logstash.log &
+      shell: ./bin/logstash -f {{ logstash_conf_path }}/{{ item }} >> logs/{{ item }}.log &
       args:
           chdir: "{{ elk_path }}/logstash"
       with_items:
           "{{ conf_file.stdout_lines }}"
 
-    #- pause: seconds=15
     ## Configure kibana
     - name: Configure kibana
       command: python {{ inventory_dir }}/files/set_kibana_config.py
       register: result
       args:
           chdir: "{{ inventory_dir }}"
-      #ignore_errors: yes
       become: yes
       until: result.rc == 0
       retries: 5

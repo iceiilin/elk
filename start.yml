@@ -27,15 +27,23 @@
 
   tasks:
     - name: Remove previous config and log file
-      shell: rm {{ esxtop_exec_path }}/*.csv; rm {{ esxtop_exec_path }}/*.logstash; rm {{ esxtop_exec_path }}/*.kibana
+      shell: rm -rf {{ esxtop_exec_path }}
       ignore_errors: yes
+      when: esxtop
+
+    - name: Copy scripts from test machine
+      copy: src={{ esxtop_elk_script_path }}
+            dest=/
+            mode=0744
       when: esxtop
 
     - name: Get suffix of the log name
       shell: echo _`echo {{ inventory_hostname }} | awk -F "." '{print $4}'`_{{ hostvars['localhost']['timestamp']['stdout'] }}
       register: file_suffix
+      when: esxtop
 
     - debug: msg={{ file_suffix.stdout }}
+      when: esxtop
 
     - name: start esxtop script
       command: "{{ esxtop_exec_path }}/esxtop_csv_collector.py -n {{ esxtop_count }} -d {{ esxtop_delay }} --logpath {{ data_log_path }} --suffix {{ file_suffix.stdout }} "
@@ -68,34 +76,10 @@
     - name: Remove previous config and log file
       shell: rm {{ benchmark_elk_script_path }}/*.logstash; rm {{ benchmark_elk_script_path }}/*.kibana
       ignore_errors: yes
-      when: esxtop
+      when: benchmark
 
     - name: generate elk config files for benchmark
       shell: ./generate_benchmark_elkconf.sh -p {{ benchmark_log_path.stdout }}/data -t {{ timestamp.stdout }}
       args:
           chdir: "{{ benchmark_elk_script_path }}"
       when: benchmark
-
-#- hosts: rackhd
-
-  #tasks:
-      #- name: get rackhd ubuntu version
-        #shell: lsb_release -a | grep Release | awk '{print $2}' | awk -F '.' '{print $1}'
-        #register: release
-        #ignore_errors: yes
-        #become: True
-        #when: rackhdlog
-
-      #- name: clear old logs for ubuntu 14
-        #shell: rm /var/log/upstart/on-*
-        ##file: path=/var/log/upstart/* state=absent
-        #ignore_errors: yes
-        #become: True
-        #when: rackhdlog and (release.stdout == "14")
-
-      #- name: clear old logs for ubuntu 16
-        #shell: rm /var/log/rackhd/*
-        ##file: path=/var/log/rackhd/* state=absent
-        #ignore_errors: yes
-        #become: True
-        #when: rackhdlog and (release.stdout == "16")

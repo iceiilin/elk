@@ -12,11 +12,11 @@ Here are steps to use this tool in the VM that is running ELK stack.
 
     [elk:vars]
 
-        benchmark/esxtop/rackhdlog - whether to collect benchmark/esxtop/rackhlog data. "true" to collect them.
+    benchmark/esxtop/rackhdlog - whether to collect benchmark/esxtop/rackhlog data. "true" to collect them.
 
-        rackhd* - username/password/APIport information about rackhd
+    rackhd* - username/password/APIport information about rackhd
 
-        esxi* - username/password information about esxi server. Currently these servers should have the same configurations
+    esxi* - username/password information about esxi server. Currently these servers should have the same configurations
 
 2. Run setup_env.yml to setup the environment
     It only needs to run once for the one set of @Scale environment
@@ -34,9 +34,9 @@ Here are steps to use this tool in the VM that is running ELK stack.
     ansible-playbook -i hosts stop.yml
     ```
 5. View the dashboard for performance data in kibana
-    Open an browser and type "<vm(ELK) ip>:5601", choose "dashboard" in the left bar, select "open" on top
+    Open an browser and type "vm(ELK)_ip:5601", choose "dashboard" in the left bar, select "open" on top
     of the screen, and choose one dashboard from the drop down menu.
-    The name of the dashboard is build as <data source>_<IP(only for esxi server)>_<day>_<time>
+    The name of the dashboard is build as "data_source_IP(only for esxi server)_day_time"
 
 (Old for reference below)
 

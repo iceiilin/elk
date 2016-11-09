@@ -22,7 +22,7 @@ filter
 {
     if "static-logs" == [type] {
         grok {
-            match => {"message" => "\[%{WORD:loglevel}\] \[%{TIMESTAMP_ISO8601:date}\] \[%{NOTSPACE:process}\] \[%{NOTSPACE:module}\] \[%{NOTSPACE:runner}\] %{GREEDYDATA:event}\r\n -> %{NOTSPACE:caller}\r%{GREEDYDATA:content}"}
+            match => {"message" => "\[%{WORD:loglevel}\] \[%{TIMESTAMP_ISO8601:date}\] \[%{NOTSPACE:process}\] \[%{NOTSPACE:module}\] \[%{NOTSPACE:runner}\] %{GREEDYDATA:event}\n -> %{NOTSPACE:caller}%{GREEDYDATA:content}"}
             add_tag => ["%{process}"]
         }
 

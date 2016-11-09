@@ -34,4 +34,27 @@ elk_path: "{{ inventory_dir }}/elk"
 logstash_conf_path: "{{ elk_path }}/logstash/rackhd_config"
 kibana_conf_path: "{{ elk_path }}/kibana"
 
-timestamp: '20161104_184452'
+elk_conf_info:
+    esxtop:
+        src:
+            - { index: 0, path: "{{ esxtop_exec_path }}/*.csv" }
+            - { index: 1, path: "{{ esxtop_exec_path }}/*.logstash" }
+            - { index: 2, path: "{{ esxtop_exec_path }}/*.kibana" }
+        dst:
+            - { index: 0, path: "{{ data_log_path }}" }
+            - { index: 1, path: "{{ logstash_conf_path}}" }
+            - { index: 2, path: "{{ kibana_conf_path }}" }
+
+    test_machine:
+        src:
+            - { index: 0, path: "{{ benchmark_elk_script_path }}/*.logstash", flag: "benchmark"}
+            - { index: 1, path: "{{ benchmark_elk_script_path }}/*.kibana", flag: "benchmark"}
+            - { index: 2, path: "{{ rackhdlog_elk_script_path }}/*.logstash", flag: "rackhdlog"}
+            - { index: 3, path: "{{ rackhdlog_elk_script_path }}/*.kibana", flag: "rackhdlog"}
+        dst:
+            - { index: 0, path: "{{ logstash_conf_path }}", flag: "benchmark"}
+            - { index: 1, path: "{{ kibana_conf_path }}", flag: "benchmark"}
+            - { index: 2, path: "{{ logstash_conf_path }}", flag: "rackhdlog"}
+            - { index: 3, path: "{{ kibana_conf_path }}", flag: "rackhdlog"}
+
+timestamp: '20161109_163013'
